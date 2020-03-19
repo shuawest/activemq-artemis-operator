@@ -3,6 +3,7 @@ package activemqartemis
 import (
 	//"context"
 	"fmt"
+
 	"github.com/rh-messaging/activemq-artemis-operator/pkg/controller/activemqartemisscaledown"
 	"github.com/rh-messaging/activemq-artemis-operator/pkg/resources"
 	"github.com/rh-messaging/activemq-artemis-operator/pkg/resources/ingresses"
@@ -51,6 +52,7 @@ type ActiveMQArtemisReconciler struct {
 
 type ActiveMQArtemisIReconciler interface {
 	Process(customResource *brokerv2alpha1.ActiveMQArtemis, client client.Client, scheme *runtime.Scheme, currentStatefulSet *appsv1.StatefulSet, firstTime bool) uint32
+	ProcessContinuityPlugin(customResource *brokerv2alpha1.ActiveMQArtemis, client client.Client, scheme *runtime.Scheme, currentStatefulSet *appsv1.StatefulSet)
 	ProcessDeploymentPlan(customResource *brokerv2alpha1.ActiveMQArtemis, client client.Client, scheme *runtime.Scheme, currentStatefulSet *appsv1.StatefulSet, firstTime bool) uint32
 	ProcessAcceptors(customResource *brokerv2alpha1.ActiveMQArtemis, client client.Client, scheme *runtime.Scheme, currentStatefulSet *appsv1.StatefulSet)
 	ProcessConnectors(customResource *brokerv2alpha1.ActiveMQArtemis, client client.Client, scheme *runtime.Scheme, currentStatefulSet *appsv1.StatefulSet)
@@ -76,12 +78,69 @@ func (reconciler *ActiveMQArtemisReconciler) Process(customResource *brokerv2alp
 	}
 	statefulSetUpdates |= sourceEnvVarFromSecret(customResource, currentStatefulSet, adminPassword, envVarName, secretName, client, scheme)
 
+	statefulSetUpdates |= reconciler.ProcessContinuityPlugin(customResource, client, scheme, currentStatefulSet)
+
 	statefulSetUpdates |= reconciler.ProcessDeploymentPlan(customResource, client, scheme, currentStatefulSet, firstTime)
 	statefulSetUpdates |= reconciler.ProcessAcceptors(customResource, client, scheme, currentStatefulSet)
 	statefulSetUpdates |= reconciler.ProcessConnectors(customResource, client, scheme, currentStatefulSet)
 	statefulSetUpdates |= reconciler.ProcessConsole(customResource, client, scheme, currentStatefulSet)
 
 	return statefulSetUpdates
+}
+
+func (reconciler *ActiveMQArtemisReconciler) ProcessContinuityPlugin(customResource *brokerv2alpha1.ActiveMQArtemis, client client.Client, scheme *runtime.Scheme, currentStatefulSet *appsv1.StatefulSet) uint32 {
+
+	if customResource.Spec.EnableContinuity {
+		secretName := secrets.NettyNameBuilder.Name()
+
+		envVarName := "BROKER_ID_CACHE_SIZE"
+		brokerIdCacheSize := customResource.Spec.BrokerIdCacheSize
+		reconciler.statefulSetUpdates |= sourceEnvVarFromSecret(customResource, currentStatefulSet, strconv.Itoa(brokerIdCacheSize), envVarName, secretName, client, scheme)
+
+		envVarName = "LOCAL_CONTINUITY_USER"
+		reconciler.statefulSetUpdates |= sourceEnvVarFromSecret(customResource, currentStatefulSet, customResource.Spec.LocalContinuityUser, envVarName, secretName, client, scheme)
+		envVarName = "LOCAL_CONTINUITY_PASS"
+		reconciler.statefulSetUpdates |= sourceEnvVarFromSecret(customResource, currentStatefulSet, customResource.Spec.LocalContinuityPass, envVarName, secretName, client, scheme)
+
+		// get list of acceptors that aren't for the cluster, scale controller, or continuity
+		var servingAcceptors string = ""
+		for _, acceptor := range customResource.Spec.Acceptors {
+			if acceptor.Name != "continuity-external" {
+				if servingAcceptors != "" {
+					servingAcceptors = servingAcceptors + ";"
+				}
+				servingAcceptors = servingAcceptors + acceptor.Name
+			}
+		}
+
+		// add continuity plugin config
+		continuityPlugin := ""
+		continuityPlugin = continuityPlugin + "<broker-plugins>\n"
+		continuityPlugin = continuityPlugin + "   <broker-plugin class-name=\"org.apache.activemq.continuity.plugins.ContinuityPlugin\">\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"site-id\" value=\"" + customResource.Spec.SiteId + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"local-username\" value=\"" + customResource.Spec.LocalContinuityUser + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"local-password\" value=\"" + customResource.Spec.LocalContinuityPass + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"remote-username\" value=\"" + customResource.Spec.RemoteContinuityUser + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"remote-password\" value=\"" + customResource.Spec.RemoteContinuityPass + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"serving-acceptors\" value=\"" + servingAcceptors + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"local-connector-ref\" value=\"continuity-local\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"remote-connector-refs\" value=\"continuity-remote\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"active-on-start\" value=\"" + fmt.Sprintf("%v", customResource.Spec.ActiveOnStart) + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"inflow-staging-delay-ms\" value=\"" + strconv.Itoa(customResource.Spec.InflowStagingDelay) + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"bridge-interval-ms\" value=\"" + strconv.Itoa(customResource.Spec.BridgeInterval) + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"bridge-interval-multiplier\" value=\"" + fmt.Sprintf("%f", customResource.Spec.BridgeIntervalMultiplier) + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"outflow-exhausted-poll-duration-ms\" value=\"" + strconv.Itoa(customResource.Spec.OutflowExhaustedPollDuration) + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"inflow-acks-consumed-poll-duration-ms\" value=\"" + strconv.Itoa(customResource.Spec.OutflowAcksConsumedPollDuration) + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"activation-timeout-ms\" value=\"" + strconv.Itoa(customResource.Spec.ActivationTimeout) + "\" />\n"
+		continuityPlugin = continuityPlugin + "      <property key=\"reorg-management-hierarchy\" value=\"" + fmt.Sprintf("%v", customResource.Spec.ReorgManagement) + "\" />\n"
+		continuityPlugin = continuityPlugin + "   <\\/broker-plugin>\n"
+		continuityPlugin = continuityPlugin + "<\\/broker-plugins>\n"
+
+		envVarName = "CONTINUITY_PLUGIN"
+		reconciler.statefulSetUpdates |= sourceEnvVarFromSecret(customResource, currentStatefulSet, continuityPlugin, envVarName, secretName, client, scheme)
+	}
+
+	return reconciler.statefulSetUpdates
 }
 
 func (reconciler *ActiveMQArtemisReconciler) ProcessDeploymentPlan(customResource *brokerv2alpha1.ActiveMQArtemis, client client.Client, scheme *runtime.Scheme, currentStatefulSet *appsv1.StatefulSet, firstTime bool) uint32 {
@@ -336,6 +395,13 @@ func generateAcceptorsString(customResource *brokerv2alpha1.ActiveMQArtemis, cli
 		acceptorEntry = acceptorEntry + "<\\/acceptor>"
 	}
 
+	if customResource.Spec.EnableContinuity {
+		log.Info("Adding continuity-interal acceptor")
+		acceptorEntry = acceptorEntry + "<acceptor name=\"continuity-internal\">vm:\\/\\/1<\\/acceptor>"
+
+		// TODO: verify continuity-external acceptor exists
+	}
+
 	return acceptorEntry
 }
 
@@ -363,6 +429,13 @@ func generateConnectorsString(customResource *brokerv2alpha1.ActiveMQArtemis, cl
 			}
 		}
 		connectorEntry = connectorEntry + "<\\/connector>"
+	}
+
+	if customResource.Spec.EnableContinuity {
+		log.Info("Adding continuity-local connector")
+		connectorEntry = connectorEntry + "<connector name=\"continuity-local\">vm:\\/\\/1<\\/connector>"
+
+		// TODO: verify continuity-remote connector exists
 	}
 
 	return connectorEntry

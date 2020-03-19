@@ -30,6 +30,10 @@ type ActiveMQArtemisSpec struct {
 	LocalContinuityUser string `json:"localContinuityUser,omitempty"`
 	// Password to connect to the local broker for continuity connections. Required for continuity.
 	LocalContinuityPass string `json:"localContinuityPass,omitempty"`
+	// Password to connect to the remote broker for continuity connections. Required for continuity.
+	RemoteContinuityPass string `json:"remoteContinuityPass,omitempty"`
+	// Username to connect to the remote broker for continuity connections. Required for continuity.
+	RemoteContinuityUser string `json:"remoteContinuityUser,omitempty"`
 	// Username to connect to the peer site broker/cluster for continuity connections. Required for continuity.
 	PeerSiteUrl string `json:"peerSiteUrl,omitempty"`
 	// Username to connect to the peer site broker/cluster for continuity connections. Required for continuity.
@@ -39,19 +43,21 @@ type ActiveMQArtemisSpec struct {
 	// Identifies this is the site that should be active when first started. If another active site is connected to, this site will defer to the other. You can also start both sites inactive and explictly activate the desired start. Required for continuity.
 	ActiveOnStart bool `json:"activeOnStart,omitempty"`
 	// Size of the broker id cache size, used by the broker to remove duplicate messages across sites. Make sure the id cache is sufficiently sized for your volume of messages. The default is 3000.
-	BrokerIdCacheSize int64 `json:"brokerIdCacheSize,omitempty"`
+	BrokerIdCacheSize int `json:"brokerIdCacheSize,omitempty"`
 	// Amount of time in millseconds to delay messages in the inflow staging queues before delivering them to the target queues. Useful for active:active site topologies. The default is 60000 ms or 1 minute.
-	InflowStagingDelay int32 `json:"inflowStagingDelay,omitempty"`
+	InflowStagingDelay int `json:"inflowStagingDelay,omitempty"`
 	// Bridge reconnection interval for all the bridges created by the continuity plugin. The default is 1000 ms or 1 second.
-	BridgeInterval int32 `json:"bridgeInterval,omitempty"`
+	BridgeInterval int `json:"bridgeInterval,omitempty"`
 	// Bridge reconnection interval backoff multiplier for all the bridges created by the continuity plugin. The default is 0.5.
 	BridgeIntervalMultiplier float32 `json:"bridgeIntervalMultiplier,omitempty"`
 	// Time in milliseconds between polls to check for a site to be exhausted during deactivation. The default is 100 ms.
-	OutflowExhaustedPollDuration int32 `json:"outflowExhaustedPollDuration,omitempty"`
+	OutflowExhaustedPollDuration int `json:"outflowExhaustedPollDuration,omitempty"`
+	// Time in milliseconds between polls to check for a site to be consume all the acks during activation. The default is 100 ms.
+	OutflowAcksConsumedPollDuration int `json:"outflowAcksConsumedPollDuration,omitempty"`
 	// Time in milliseconds between polls to all the inflow acks have been consumed during activation. The default is 100 ms.
-	InflowAcksConsumedPollDuration int32 `json:"inflowAcksConsumedPollDuration,omitempty"`
+	InflowAcksConsumedPollDuration int `json:"inflowAcksConsumedPollDuration,omitempty"`
 	// Time in milliseconds to activate a site and start serving clients, overriding the wait for the peer site to be exhausted, and acks to be consumed. The default is 300000 ms or 5 minutes.
-	ActivationTimeout int64 `json:"activationTimeout,omitempty"`
+	ActivationTimeout int `json:"activationTimeout,omitempty"`
 	// Whether or not to reorganized all the address, queue, divert, and bridge primitives under the continuity hierarchy in JMX/Jolokia. The default is true.
 	ReorgManagement bool `json:"reorgManagement,omitempty"`
 	// Logging level for the continuity plugin. The default is INFO.

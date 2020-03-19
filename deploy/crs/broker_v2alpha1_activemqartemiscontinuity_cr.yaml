@@ -4,26 +4,29 @@ metadata:
   name: ex-aao
   application: ex-aao-app
 spec:
+  adminUser: admin
+  adminPassword: adminpass
   enableContinuity: true
   siteId: site1
   localContinuityUser: asdf
   localContinuityPass: asdfpass
-  peerSiteUrl: amqp://peersiteuri/
+  peerSiteUrl: tcp://peersiteuri/
   peerContinuityUser: zxcv
   peerContinuityPass: zxcvpass
   activeOnStart: true
-  brokerIdCacheSize: 1000000
+  brokerIdCacheSize: 100000
   inflowStagingDelay: 60000
   bridgeInterval: 1000
   bridgeIntervalMultiplier: 0.5
   outflowExhaustedPollDuration: 100
+  outflowAcksConsumedPollDuration: 100
   inflowAcksConsumedPollDuration: 100
   activationTimeout: 300000
   reorgManagement: true
-  continuityLogLevel: INFO
+  continuityLogLevel: DEBUG
   deploymentPlan:
     size: 2
-    image: registry.redhat.io/amq7/amq-broker:7.5
+    image: quay.io/shuawest/amq-continuity-broker:7.5
     requireLogin: false
     persistenceEnabled: false
     journalType: nio
@@ -45,7 +48,7 @@ spec:
       expose: true
       anycastPrefix: jms.topic.
       multicastPrefix: /queue/
-    - name: continuity
+    - name: continuity-external
       protocols: amqp
       port: 5673
       sslEnabled: true
@@ -70,3 +73,16 @@ spec:
       sslProvider: JDK
       sniHost: localhost
       expose: true
+    - name: continuity-remote
+      host: peersitehostname
+      port: 5672
+      sslEnabled: true
+      enabledCipherSuites: SSL_RSA_WITH_RC4_128_SHA,SSL_DH_anon_WITH_3DES_EDE_CBC_SHA
+      enabledProtocols: TLSv1,TLSv1.1,TLSv1.2
+      needClientAuth: true
+      wantClientAuth: true
+      verifyHost: true
+      sslProvider: JDK
+      sniHost: localhost
+      expose: true
+      

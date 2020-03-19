@@ -315,6 +315,20 @@ func schema_pkg_apis_broker_v2alpha1_ActiveMQArtemisSpec(ref common.ReferenceCal
 							Format:      "",
 						},
 					},
+					"remoteContinuityPass": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Password to connect to the remote broker for continuity connections. Required for continuity.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"remoteContinuityUser": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Username to connect to the remote broker for continuity connections. Required for continuity.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 					"peerSiteUrl": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Username to connect to the peer site broker/cluster for continuity connections. Required for continuity.",
@@ -347,7 +361,7 @@ func schema_pkg_apis_broker_v2alpha1_ActiveMQArtemisSpec(ref common.ReferenceCal
 						SchemaProps: spec.SchemaProps{
 							Description: "Size of the broker id cache size, used by the broker to remove duplicate messages across sites. Make sure the id cache is sufficiently sized for your volume of messages. The default is 3000.",
 							Type:        []string{"integer"},
-							Format:      "int64",
+							Format:      "int32",
 						},
 					},
 					"inflowStagingDelay": {
@@ -378,6 +392,13 @@ func schema_pkg_apis_broker_v2alpha1_ActiveMQArtemisSpec(ref common.ReferenceCal
 							Format:      "int32",
 						},
 					},
+					"outflowAcksConsumedPollDuration": {
+						SchemaProps: spec.SchemaProps{
+							Description: "Time in milliseconds between polls to check for a site to be consume all the acks during activation. The default is 100 ms.",
+							Type:        []string{"integer"},
+							Format:      "int32",
+						},
+					},
 					"inflowAcksConsumedPollDuration": {
 						SchemaProps: spec.SchemaProps{
 							Description: "Time in milliseconds between polls to all the inflow acks have been consumed during activation. The default is 100 ms.",
@@ -389,7 +410,7 @@ func schema_pkg_apis_broker_v2alpha1_ActiveMQArtemisSpec(ref common.ReferenceCal
 						SchemaProps: spec.SchemaProps{
 							Description: "Time in milliseconds to activate a site and start serving clients, overriding the wait for the peer site to be exhausted, and acks to be consumed. The default is 300000 ms or 5 minutes.",
 							Type:        []string{"integer"},
-							Format:      "int64",
+							Format:      "int32",
 						},
 					},
 					"reorgManagement": {

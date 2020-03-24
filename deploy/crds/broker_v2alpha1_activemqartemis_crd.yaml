@@ -267,7 +267,7 @@ spec:
             localContinuityUser:
               description: Username to connect to the local broker for continuity
                 connections. Required for continuity.
-              type: string
+              type: string    
             outflowAcksConsumedPollDuration:
               description: Time in milliseconds between polls to check for a site
                 to be consume all the acks during activation. The default is 100 ms.
@@ -278,14 +278,6 @@ spec:
                 to be exhausted during deactivation. The default is 100 ms.
               format: int64
               type: integer
-            peerContinuityPass:
-              description: Password to connect to the peer site broker/cluster for
-                continuity connections. Required for continuity.
-              type: string
-            peerContinuityUser:
-              description: Username to connect to the peer site broker/cluster for
-                continuity connections. Required for continuity.
-              type: string
             peerSiteUrl:
               description: Username to connect to the peer site broker/cluster for
                 continuity connections. Required for continuity.

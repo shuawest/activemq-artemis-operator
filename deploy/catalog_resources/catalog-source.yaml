@@ -17,7 +17,7 @@ items:
               categories: "Streaming & Messaging"
               certified: "false"
               description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters
-              containerImage: quay.io/artemiscloud/activemq-artemis-operator:0.13.0
+              containerImage: quay.io/jowest/activemq-artemis-operator:0.13.0-continuity
               createdAt: 2019-12-09T08:16:32Z
               capabilities: Seamless Upgrades
               repository: https://github.com/rh-messaging/activemq-artemis-operator
@@ -34,7 +34,7 @@ items:
                     "spec": {
                        "deploymentPlan": {
                           "size": 2,
-                          "image": "quay.io/artemiscloud/activemq-artemis-openshift-image:latest",
+                          "image": "quay.io/jowest/activemq-artemis-openshift-image:latest",
                           "requireLogin": false,
                           "persistenceEnabled": false,
                           "journalType": "nio",
@@ -63,22 +63,36 @@ items:
                     "spec": {
                         "localOnly": "true"
                     }
+                },
+                {
+                    "apiVersion": "continuity.amq.io/v2alpha2",
+                    "kind": "ActiveMQArtemisContinuity",
+                    "metadata": {
+                        "name": "ex-aaocontinuity"
+                    },
+                    "spec": {
+                        "siteId": "site1",
+                        "peerUrl": "tcp://site2:61636"
+                    }
                 }]
           labels:
             operator-activemqartemis: "true"
             operatorframework.io/arch.amd64: supported
             operatorframework.io/arch.s390x: supported
           spec:
-            displayName: ActiveMQ Artemis
-            description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters
+            displayName: ActiveMQ Artemis with Continuity
+            description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, and the continuity plugin replicates queues across sites.
             keywords:
               - activemqartemis
               - operator
-            version: 0.13.0
+              - continuity
+            version: 0.13.0-continuity
             maturity: alpha
             maintainers:
               - name: Red Hat
                 email: rkieley@redhat.com
+              - name: Josh West - Continuity
+                email: jowest@redhat.com
             provider:
               name: Red Hat
             links:
@@ -91,12 +105,12 @@ items:
                 mediatype: image/png
             labels:
               alm-owner-amq-broker: activemq-artemis-operator
-              operated-by: activemq-artemis-operator.v0.13.0
+              operated-by: activemq-artemis-operator.v0.13.0-continuity
             selector:
               matchLabels:
                 ActiveMQArtemis: ex-aao
                 application: ex-aao-app
-                operated-by: activemq-artemis-operator.v0.13.0
+                operated-by: activemq-artemis-operator.v0.13.0-continuity
             installModes:
               - type: OwnNamespace
                 supported: true
@@ -857,6 +871,8 @@ items:
               currentCSV: activemq-artemis-operator.v0.9.1
             - name: current-76
               currentCSV: activemq-artemis-operator.v0.13.0
+            - name: continuity-76
+              currentCSV: activemq-artemis-operator.v0.13.0-continuity
 
   - apiVersion: operators.coreos.com/v1alpha1
     kind: CatalogSource
@@ -865,7 +881,7 @@ items:
       namespace: operator-lifecycle-manager
     spec:
       configMap: activemq-artemis-resources
-      displayName: ActiveMQ Artemis Operator
+      displayName: ActiveMQ Artemis Operator with Continuity
       publisher: Red Hat
       sourceType: internal
     status:

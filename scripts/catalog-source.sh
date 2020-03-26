@@ -6,10 +6,11 @@ else
     CATALOG_NS=${1}
 fi
 
-CSV=`cat deploy/olm-catalog/activemq-artemis-operator/0.13.0/activemq-artemis-operator.v0.13.0.clusterserviceversion.yaml | sed -e 's/^/          /' | sed '0,/ /{s/          /        - /}'`
+CSV=`cat deploy/olm-catalog/activemq-artemis-operator/0.13.0-continuity/activemq-artemis-operator.v0.13.0.clusterserviceversion.yaml | sed -e 's/^/          /' | sed '0,/ /{s/          /        - /}'`
 CRD=`cat deploy/crds/broker_v2alpha1_activemqartemis_crd.yaml | sed -e 's/^/          /' | sed '0,/ /{s/          /        - /}'`
 CRDActivemqartemisaddress=`cat deploy/crds/broker_v2alpha1_activemqartemisaddress_crd.yaml | sed -e 's/^/          /' | sed '0,/ /{s/          /        - /}'`
 CRDActivemqartemisscaledown=`cat deploy/crds/broker_v2alpha1_activemqartemisscaledown_crd.yaml | sed -e 's/^/          /' | sed '0,/ /{s/          /        - /}'`
+CRDActivemqartemiscontinuity=`cat deploy/crds/continuity_v2alpha2_activemqartemiscontinuity_crd.yaml | sed -e 's/^/          /' | sed '0,/ /{s/          /        - /}'`
 PKG=`cat deploy/olm-catalog/activemq-artemis-operator/activemq-artemis.package.yaml | sed -e 's/^/          /' | sed '0,/ /{s/          /        - /}'`
 
 cat << EOF > deploy/catalog_resources/redhat/catalog-source.yaml
@@ -28,6 +29,7 @@ ${CSV}
 ${CRD}
 ${CRDActivemqartemisaddress}
 ${CRDActivemqartemisscaledown}
+${CRDActivemqartemiscontinuity}
       packages: >
 ${PKG}
 
@@ -38,7 +40,7 @@ ${PKG}
       namespace: ${CATALOG_NS}
     spec:
       configMap: activemq-artemis-resources
-      displayName: ActiveMQ Artemis Operator
+      displayName: ActiveMQ Artemis Operator with Continuity
       publisher: Red Hat
       sourceType: internal
     status:

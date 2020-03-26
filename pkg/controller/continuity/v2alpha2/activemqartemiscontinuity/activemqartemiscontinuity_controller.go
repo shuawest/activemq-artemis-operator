@@ -5,7 +5,8 @@ import (
 	"strconv"
 
 	continuityv2alpha2 "github.com/rh-messaging/activemq-artemis-operator/pkg/apis/continuity/v2alpha2"
-	mgmt "github.com/rh-messaging/activemq-artemis-operator/pkg/continuity/continuitymgmt"
+	mgmt "github.com/rh-messaging/activemq-artemis-operator/pkg/continuity"
+	ss "github.com/rh-messaging/activemq-artemis-operator/pkg/resources/statefulsets"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -121,7 +122,7 @@ func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, re
 				reqLogger.Info("Creating ActiveMQArtemisContinuity artemisArray had a nil!")
 				continue
 			}
-			_, err := a.CreateContinuity(instance.Spec.AddressName, instance.Spec.QueueName, instance.Spec.RoutingType)
+			_, err := a.ConfigureContinuity(instance.Spec.SiteId, instance.Spec.PeerSiteUrl, instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass)
 			if nil != err {
 				reqLogger.Info("Creating ActiveMQArtemisContinuity error for " + instance.Spec.SiteId)
 				break

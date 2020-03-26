@@ -1,6 +1,8 @@
-package continuitymgmt
+package continuity
 
 import (
+	"strconv"
+
 	"github.com/roddiekieley/activemq-artemis-management/jolokia"
 )
 
@@ -58,7 +60,7 @@ func (artemis *ArtemisContinuity) FetchContinuity(siteId string) (*jolokia.ExecD
 
 func (artemis *ArtemisContinuity) ActivateSite(siteId string, activationTimeout int64) (*jolokia.ExecData, error) {
 	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.service\\\""
-	parameters := activationTimeout
+	parameters := strconv.FormatInt(activationTimeout, 10)
 	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"activateSite(java.lang.Long)","arguments":[` + parameters + `]` + ` }`
 	data, err := artemis.jolokia.Exec(url, jsonStr)
 

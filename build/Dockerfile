@@ -38,9 +38,9 @@ COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-opera
 COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/olm-catalog/${BROKER_NAME}-operator/0.9.1/ /manifests/0.9.1
 COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/olm-catalog/${BROKER_NAME}-operator/0.13.0/ /manifests/0.13.0
 COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/olm-catalog/${BROKER_NAME}-operator/0.13.0-continuity/ /manifests/0.13.0-continuity
-COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/crds/* /manifests/0.9.1
-COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/crds/* /manifests/0.13.0
-COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/crds/* /manifests/0.13.0-continuity
+COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/crds/* /manifests/0.9.1/
+COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/crds/* /manifests/0.13.0/
+COPY --from=build-env /tmp/go/src/github.com/rh-messaging/activemq-artemis-operator/deploy/crds/* /manifests/0.13.0-continuity/
 
 RUN useradd ${BROKER_NAME}-operator
 RUN mkdir -p /home/${BROKER_NAME}-operator/bin && chown -R `id -u`:0 /home/${BROKER_NAME}-operator/bin && chmod -R 755 /home/${BROKER_NAME}-operator/bin

@@ -48,6 +48,13 @@ rules:
   verbs:
   - '*'
 - apiGroups:
+  - continuity.amq.io
+  resources:
+  - '*'
+  - activemqartemiscontinuity
+  verbs:
+  - '*'
+- apiGroups:
   - route.openshift.io
   resources:
   - routes

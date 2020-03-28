@@ -4,7 +4,7 @@ metadata:
   name: activemq-artemis-operator.v0.13.0-continuity
   namespace: placeholder
   annotations:
-    categories: "Streaming & Messaging"
+    categories: "Messaging with Continuity"
     certified: "false"
     description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters
     containerImage: quay.io/jowest/activemq-artemis-operator:0.13.0-continuity

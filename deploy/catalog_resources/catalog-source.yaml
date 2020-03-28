@@ -11,7 +11,7 @@ items:
         - apiVersion: operators.coreos.com/v1alpha1
           kind: ClusterServiceVersion
           metadata:
-            name: activemq-artemis-operator.v0.13.0
+            name: activemq-artemis-operator.v0.13.0-continuity
             namespace: placeholder
             annotations:
               categories: "Streaming & Messaging"
@@ -20,7 +20,7 @@ items:
               containerImage: quay.io/jowest/activemq-artemis-operator:0.13.0-continuity
               createdAt: 2019-12-09T08:16:32Z
               capabilities: Seamless Upgrades
-              repository: https://github.com/rh-messaging/activemq-artemis-operator
+              repository: https://github.com/shuawest/activemq-artemis-operator
               support: Red Hat
               tectonic-visibility: ocs
               alm-examples: >-
@@ -34,7 +34,7 @@ items:
                     "spec": {
                        "deploymentPlan": {
                           "size": 2,
-                          "image": "quay.io/jowest/activemq-artemis-openshift-image:latest",
+                          "image": "quay.io/jowest/amq-broker-continuity:7.6-continuity",
                           "requireLogin": false,
                           "persistenceEnabled": false,
                           "journalType": "nio",
@@ -522,7 +522,7 @@ items:
                           serviceAccountName: activemq-artemis-operator
                           containers:
                             - name: activemq-artemis-operator
-                              image: quay.io/artemiscloud/activemq-artemis-operator:0.13.0
+                              image: quay.io/artemiscloud/activemq-artemis-operator:0.13.0-continuity
                               command:
                                 -  /home/activemq-artemis-operator/bin/entrypoint
                               imagePullPolicy: Always

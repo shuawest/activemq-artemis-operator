@@ -22,7 +22,7 @@ ENV USER_UID=1000
 ENV USER_NAME=${BROKER_NAME}-operator
 ENV CGO_ENABLED=0
 ENV GOPATH=/tmp/go
-ENV JBOSS_IMAGE_NAME="amq7/amq-broker-rhel7-operator"
+ENV JBOSS_IMAGE_NAME="jowest/activemq-artemis-operator"
 ENV JBOSS_IMAGE_VERSION="0.13-continuity"
 
 WORKDIR /
@@ -49,15 +49,15 @@ USER ${USER_UID}
 ENTRYPOINT ["/home/${BROKER_NAME}-operator/bin/entrypoint"]
 
 LABEL \
-      com.redhat.component="amq-broker-continuity-operator-container"  \
+      com.redhat.component="activemq-artemis-operator-container"  \
       com.redhat.delivery.appregistry="true" \
       description="ActiveMQ Artemis Broker Operator with Continuity Plugin"  \
       io.k8s.description="An associated operator that handles broker installation, updates and scaling."  \
       io.k8s.display-name="ActiveMQ Artemis Broker Operator with Continuity"  \
       io.openshift.expose-services=""  \
       io.openshift.s2i.scripts-url="image:///usr/local/s2i"  \
-      io.openshift.tags="messaging,amq,integration,operator,golang"  \
+      io.openshift.tags="messaging,amq,integration,operator,golang,continuity"  \
       maintainer="Roddie Kieley <rkieley@redhat.com>, Josh West <jowest@redhat.com>"  \
-      name="amq7/amq-broker-continuity-operator" \
+      name="jowest/activemq-artemis-operator" \
       summary="ActiveMQ Artemis Broker Operator with Continuity"  \
       version="0.13-continuity"

@@ -1,7 +1,7 @@
 apiVersion: operators.coreos.com/v1
 kind: OperatorSource
 metadata:
-  name: activemq-artemis
+  name: activemq-artemis-continuity
   namespace: openshift-marketplace
 spec:
   type: appregistry

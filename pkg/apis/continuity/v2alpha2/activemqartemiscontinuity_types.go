@@ -7,22 +7,18 @@ import (
 // ActiveMQArtemisContinuitySpec defines the desired state of ActiveMQArtemisContinuity
 // +k8s:openapi-gen=true
 type ActiveMQArtemisContinuitySpec struct {
-	SiteId                          string  `json:"siteId,omitempty"`
-	PeerSiteUrl                     string  `json:"peerSiteUrl,omitempty"`
-	LocalContinuityUser             string  `json:"localContinuityUser,omitempty"`
-	LocalContinuityPass             string  `json:"localContinuityPass,omitempty"`
-	RemoteContinuityPass            string  `json:"remoteContinuityPass,omitempty"`
-	RemoteContinuityUser            string  `json:"remoteContinuityUser,omitempty"`
-	ActiveOnStart                   bool    `json:"activeOnStart,omitempty"`
-	BrokerIdCacheSize               int     `json:"brokerIdCacheSize,omitempty"`
-	InflowStagingDelay              int     `json:"inflowStagingDelay,omitempty"`
-	BridgeInterval                  int     `json:"bridgeInterval,omitempty"`
-	BridgeIntervalMultiplier        float32 `json:"bridgeIntervalMultiplier,omitempty"`
-	OutflowExhaustedPollDuration    int     `json:"outflowExhaustedPollDuration,omitempty"`
-	OutflowAcksConsumedPollDuration int     `json:"outflowAcksConsumedPollDuration,omitempty"`
-	InflowAcksConsumedPollDuration  int     `json:"inflowAcksConsumedPollDuration,omitempty"`
-	ActivationTimeout               int     `json:"activationTimeout,omitempty"`
-	ReorgManagement                 bool    `json:"reorgManagement,omitempty"`
+	SiteId                   string  `json:"siteId,omitempty"`
+	LocalContinuityUser      string  `json:"localContinuityUser,omitempty"`
+	LocalContinuityPass      string  `json:"localContinuityPass,omitempty"`
+	RemoteContinuityPass     string  `json:"remoteContinuityPass,omitempty"`
+	RemoteContinuityUser     string  `json:"remoteContinuityUser,omitempty"`
+	ActiveOnStart            bool    `json:"activeOnStart,omitempty"`
+	InflowStagingDelay       int     `json:"inflowStagingDelay,omitempty"`
+	BridgeInterval           int     `json:"bridgeInterval,omitempty"`
+	BridgeIntervalMultiplier float32 `json:"bridgeIntervalMultiplier,omitempty"`
+	PollDuration             int     `json:"pollDuration,omitempty"`
+	ActivationTimeout        int     `json:"activationTimeout,omitempty"`
+	ReorgManagement          bool    `json:"reorgManagement,omitempty"`
 }
 
 // ActiveMQArtemisContinuityStatus defines the observed state of ActiveMQArtemisContinuity

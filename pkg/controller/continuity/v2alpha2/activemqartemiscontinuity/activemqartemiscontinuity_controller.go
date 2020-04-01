@@ -122,8 +122,11 @@ func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, re
 				reqLogger.Info("Creating ActiveMQArtemisContinuity artemisArray had a nil!")
 				continue
 			}
-			_, err := a.ConfigureContinuity(instance.Spec.SiteId, instance.Spec.PeerSiteUrl, instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass)
-			if nil != err {
+			_, errConfigure := a.Configure(instance.Spec.SiteId, instance.Spec.ActiveOnStart, instance.Spec.ServingAcceptors, "continuity-local", instance.Spec.RemoteConnectorRefs, instance.Spec.ReorgManagement)
+			_, errSecrets := a.SetSecrets(instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass, instance.Spec.RemoteContinuityUser, instance.Spec.RemoteContinuityPass)
+			_, errTune := a.Tune(instance.Spec.ActivationTimeout, instance.Spec.InflowStagingDelay, instance.Spec.BridgeInterval, instance.Spec.BridgeIntervalMultiplier, instance.Spec.PollDuration)
+			_, errBoot := a.Boot()
+			if nil != errConfigure || nil != errSecrets || nil != errTune || nil != errBoot {
 				reqLogger.Info("Creating ActiveMQArtemisContinuity error for " + instance.Spec.SiteId)
 				break
 			} else {

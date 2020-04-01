@@ -14,31 +14,63 @@ spec:
     openAPIV3Schema:
       properties:
         apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#resources'
           type: string
         kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#types-kinds'
           type: string
         metadata:
           type: object
         spec:
           properties:
-            activationTimeout:
-              description: Time in milliseconds to activate a site and start serving
-                clients, overriding the wait for the peer site to be exhausted, and
-                acks to be consumed. The default is 300000 ms or 5 minutes.
-              format: int64
-              type: integer
+            siteId:
+              description: Name the continuity site. Must be unique in the set of
+                peers (is same across the artemis cluster). Required for continuity.
+              type: string
             activeOnStart:
               description: Identifies this is the site that should be active when
                 first started. If another active site is connected to, this site will
                 defer to the other. You can also start both sites inactive and explictly
                 activate the desired start. Required for continuity.
               type: boolean
+            servingAcceptors:
+              description: List of acceptors exposed for external consumption that will be enabled/disabled during site swapover. Comma or semicolon separated.
+              type: string
+            remoteConnectorRefs:
+              description: List of connectors that point at the peer site.
+              type: string
+            reorgManagement:
+              description: Whether or not to reorganized all the address, queue, divert,
+                and bridge primitives under the continuity hierarchy in JMX/Jolokia.
+                The default is true.
+              type: boolean
+            localContinuityPass:
+              description: Password to connect to the local broker for continuity
+                connections. Required for continuity.
+              type: string
+            localContinuityUser:
+              description: Username to connect to the local broker for continuity
+                connections. Required for continuity.
+              type: string
+            remoteContinuityPass:
+              description: Password to connect to the remote broker for continuity
+                connections. Required for continuity.
+              type: string
+            remoteContinuityUser:
+              description: Username to connect to the remote broker for continuity
+                connections. Required for continuity.
+              type: string    
+            activationTimeout:
+              description: Time in milliseconds to activate a site and start serving
+                clients, overriding the wait for the peer site to be exhausted, and
+                acks to be consumed. The default is 300000 ms or 5 minutes.
+              format: int64
+              type: integer
+            inflowStagingDelay:
+              description: Amount of time in millseconds to delay messages in the
+                inflow staging queues before delivering them to the target queues.
+                Useful for active:active site topologies. The default is 60000 ms
+                or 1 minute.
+              format: int64
+              type: integer
             bridgeInterval:
               description: Bridge reconnection interval for all the bridges created
                 by the continuity plugin. The default is 1000 ms or 1 second.
@@ -49,63 +81,10 @@ spec:
                 the bridges created by the continuity plugin. The default is 0.5.
               format: float
               type: number
-            brokerIdCacheSize:
-              description: Size of the broker id cache size, used by the broker to
-                remove duplicate messages across sites. Make sure the id cache is
-                sufficiently sized for your volume of messages. The default is 3000.
+            pollDuration:
+              description: Time in milliseconds between polls for status checks. The default is 100 ms.
               format: int64
               type: integer
-            inflowAcksConsumedPollDuration:
-              description: Time in milliseconds between polls to all the inflow acks
-                have been consumed during activation. The default is 100 ms.
-              format: int64
-              type: integer
-            inflowStagingDelay:
-              description: Amount of time in millseconds to delay messages in the
-                inflow staging queues before delivering them to the target queues.
-                Useful for active:active site topologies. The default is 60000 ms
-                or 1 minute.
-              format: int64
-              type: integer
-            localContinuityPass:
-              description: Password to connect to the local broker for continuity
-                connections. Required for continuity.
-              type: string
-            localContinuityUser:
-              description: Username to connect to the local broker for continuity
-                connections. Required for continuity.
-              type: string
-            outflowAcksConsumedPollDuration:
-              description: Time in milliseconds between polls to check for a site
-                to be consume all the acks during activation. The default is 100 ms.
-              format: int64
-              type: integer
-            outflowExhaustedPollDuration:
-              description: Time in milliseconds between polls to check for a site
-                to be exhausted during deactivation. The default is 100 ms.
-              format: int64
-              type: integer
-            peerSiteUrl:
-              description: Username to connect to the peer site broker/cluster for
-                continuity connections. Required for continuity.
-              type: string
-            remoteContinuityPass:
-              description: Password to connect to the remote broker for continuity
-                connections. Required for continuity.
-              type: string
-            remoteContinuityUser:
-              description: Username to connect to the remote broker for continuity
-                connections. Required for continuity.
-              type: string
-            reorgManagement:
-              description: Whether or not to reorganized all the address, queue, divert,
-                and bridge primitives under the continuity hierarchy in JMX/Jolokia.
-                The default is true.
-              type: boolean
-            siteId:
-              description: Name the continuity site. Must be unique in the set of
-                peers (is same across the artemis cluster). Required for continuity.
-              type: string
           type: object
         status:
           type: object

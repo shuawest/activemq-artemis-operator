@@ -8,17 +8,19 @@ import (
 // +k8s:openapi-gen=true
 type ActiveMQArtemisContinuitySpec struct {
 	SiteId                   string  `json:"siteId,omitempty"`
+	ActiveOnStart            bool    `json:"activeOnStart,omitempty"`
+	ServingAcceptors         string  `json:"servingAcceptors,omitempty"`
+	RemoteConnectorRefs      string  `json:"remoteConnectorRefs,omitempty"`
+	ReorgManagement          bool    `json:"reorgManagement,omitempty"`
 	LocalContinuityUser      string  `json:"localContinuityUser,omitempty"`
 	LocalContinuityPass      string  `json:"localContinuityPass,omitempty"`
 	RemoteContinuityPass     string  `json:"remoteContinuityPass,omitempty"`
 	RemoteContinuityUser     string  `json:"remoteContinuityUser,omitempty"`
-	ActiveOnStart            bool    `json:"activeOnStart,omitempty"`
+	ActivationTimeout        int     `json:"activationTimeout,omitempty"`
 	InflowStagingDelay       int     `json:"inflowStagingDelay,omitempty"`
 	BridgeInterval           int     `json:"bridgeInterval,omitempty"`
 	BridgeIntervalMultiplier float32 `json:"bridgeIntervalMultiplier,omitempty"`
 	PollDuration             int     `json:"pollDuration,omitempty"`
-	ActivationTimeout        int     `json:"activationTimeout,omitempty"`
-	ReorgManagement          bool    `json:"reorgManagement,omitempty"`
 }
 
 // ActiveMQArtemisContinuityStatus defines the observed state of ActiveMQArtemisContinuity

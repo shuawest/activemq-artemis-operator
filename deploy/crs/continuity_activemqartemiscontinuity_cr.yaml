@@ -3,5 +3,17 @@ kind: ActiveMQArtemisContinuity
 metadata:
   name: example-activemqartemiscontinuity
 spec:
-  # Add fields here
-  size: 3
+  siteId: site1
+  activeOnStart: true
+  servingAcceptors: amqp
+  remoteConnectorRefs: ctyconn
+  reorgManagement: true
+  localContinuityUser: site1user
+  localContinuityPass: pass1
+  remoteContinuityUser: site2user
+  remoteContinuityPass: pass2
+  activationTimeout: 300000
+  inflowStagingDelay: 500
+  bridgeInterval: 1000
+  bridgeIntervalMultiplier: 0.5
+  pollDuration: 500

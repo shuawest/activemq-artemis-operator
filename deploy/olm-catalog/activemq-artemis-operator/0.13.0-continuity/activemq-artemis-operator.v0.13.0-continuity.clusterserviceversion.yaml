@@ -6,11 +6,11 @@ metadata:
   annotations:
     categories: "Messaging with Continuity"
     certified: "false"
-    description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters
+    description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
     containerImage: quay.io/jowest/activemq-artemis-operator:0.13.0-continuity
     createdAt: 2019-11-25T08:16:32Z
     capabilities: Seamless Upgrades
-    repository: https://github.com/rh-messaging/activemq-artemis-operator
+    repository: https://github.com/shuawest/activemq-artemis-operator
     support: Red Hat
     tectonic-visibility: ocs
     alm-examples: >-
@@ -24,7 +24,7 @@ metadata:
           "spec": {
               "deploymentPlan": {
                   "size": 2,
-                  "image": "quay.io/jowest/activemq-artemis-openshift-image:latest",
+                  "image": "quay.io/jowest/amq-broker-continuity:latest",
                   "requireLogin": false,
                   "persistenceEnabled": false,
                   "journalType": "nio",
@@ -52,6 +52,24 @@ metadata:
           },
           "spec": {
               "localOnly": "true"
+          }
+      },
+      {
+          "apiVersion": "continuity.amq.io/v2alpha2",
+          "kind": "ActiveMQArtemisContinuity",
+          "metadata": {
+              "name": "ex-aaocontinuity"
+          },
+          "spec": {
+              "siteId": "site1",
+              "activeOnStart": "true",
+              "servingAcceptors": "amqp",
+              "remoteConnectorRefs": "ctyconn",
+              "reorgManagement": "true",
+              "localContinuityUser": "site1user",
+              "localContinuityPass": "pass1",
+              "remoteContinuityUser": "site2user",
+              "remoteContinuityPass": "pass2"
           }
       }]
 labels:

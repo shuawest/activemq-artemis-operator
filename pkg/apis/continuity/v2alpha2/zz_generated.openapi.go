@@ -72,6 +72,30 @@ func schema_pkg_apis_continuity_v2alpha2_ActiveMQArtemisContinuitySpec(ref commo
 							Format: "",
 						},
 					},
+					"activeOnStart": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
+					"servingAcceptors": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"remoteConnectorRefs": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"reorgManagement": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"boolean"},
+							Format: "",
+						},
+					},
 					"localContinuityUser": {
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"string"},
@@ -96,10 +120,10 @@ func schema_pkg_apis_continuity_v2alpha2_ActiveMQArtemisContinuitySpec(ref commo
 							Format: "",
 						},
 					},
-					"activeOnStart": {
+					"activationTimeout": {
 						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
+							Type:   []string{"integer"},
+							Format: "int32",
 						},
 					},
 					"inflowStagingDelay": {
@@ -124,18 +148,6 @@ func schema_pkg_apis_continuity_v2alpha2_ActiveMQArtemisContinuitySpec(ref commo
 						SchemaProps: spec.SchemaProps{
 							Type:   []string{"integer"},
 							Format: "int32",
-						},
-					},
-					"activationTimeout": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"integer"},
-							Format: "int32",
-						},
-					},
-					"reorgManagement": {
-						SchemaProps: spec.SchemaProps{
-							Type:   []string{"boolean"},
-							Format: "",
 						},
 					},
 				},

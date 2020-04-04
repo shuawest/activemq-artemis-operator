@@ -7,7 +7,7 @@ spec:
   version: 7.6.0
   deploymentPlan:
     size: 1
-    image: quay.io/artemiscloud/activemq-artemis-operator:latest
+    image: quay.io/jowest/activemq-artemis-operator:latest
     requireLogin: false
     persistenceEnabled: false
     journalType: nio

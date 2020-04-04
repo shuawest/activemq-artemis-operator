@@ -81,7 +81,7 @@ type ReconcileActiveMQArtemisContinuity struct {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling ActiveMQArtemisContinuity")
+	reqLogger.Info("Reconciling ActiveMQArtemisContinuity 001")
 
 	// Fetch the ActiveMQArtemisContinuity instance
 	instance := &continuityv2alpha2.ActiveMQArtemisContinuity{}
@@ -116,6 +116,9 @@ func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, re
 
 	var err error = nil
 	artemisArray := getPodBrokers(instance, request, client)
+
+	reqLogger.Info("Pod brokers: " + strconv.Itoa(len(artemisArray)))
+
 	if nil != artemisArray {
 		for _, a := range artemisArray {
 			if nil == a {

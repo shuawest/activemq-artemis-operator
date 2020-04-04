@@ -5,7 +5,10 @@ import (
 	"strconv"
 
 	"github.com/roddiekieley/activemq-artemis-management/jolokia"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
+
+var log = logf.Log.WithName("continuity_mgmt")
 
 type IArtemisContinuity interface {
 	NewArtemisContinuity(_ip string, _jolokiaPort string, _name string) *ArtemisContinuity
@@ -42,11 +45,21 @@ func (artemis *ArtemisContinuity) IsBooted() (*jolokia.ExecData, error) {
 }
 
 func (artemis *ArtemisContinuity) Configure(siteId string, activeOnStart bool, servingAcceptors string, localConnectorRef string, remoteConnectorRefs string, reorgManagement bool) (*jolokia.ExecData, error) {
+	reqLogger := log.WithValues("artemis.name", artemis.name)
+
 	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.bootstrap\\\""
 	parameters := `"` + siteId + `",` + strconv.FormatBool(activeOnStart) + `,` + `"` + servingAcceptors + `",` + `"` + localConnectorRef + `",` + `"` + remoteConnectorRefs + `",` + `` + strconv.FormatBool(reorgManagement)
 	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"configure(java.lang.String,java.lang.Boolean,java.lang.String,java.lang.String,java.lang.String,java.lang.Boolean)","arguments":[` + parameters + `] }`
 
+	reqLogger.Info("Sending exec url '" + url + "' json '" + jsonStr + "'")
+
 	data, err := artemis.jolokia.Exec(url, jsonStr)
+
+	if data != nil {
+		reqLogger.Info("Received exec result '" + data.Value + "' status '" + strconv.Itoa(data.Status) + "'")
+	} else if err != nil {
+		reqLogger.Info("Received exec err '" + err.Error() + "'")
+	}
 
 	return data, err
 }

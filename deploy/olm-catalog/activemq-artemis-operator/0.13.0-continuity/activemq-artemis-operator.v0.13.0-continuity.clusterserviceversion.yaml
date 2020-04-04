@@ -7,7 +7,7 @@ metadata:
     categories: "Messaging with Continuity"
     certified: "false"
     description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
-    containerImage: quay.io/jowest/activemq-artemis-operator:0.13.0-continuity
+    containerImage: quay.io/jowest/activemq-artemis-operator:latest
     createdAt: 2019-11-25T08:16:32Z
     capabilities: Seamless Upgrades
     repository: https://github.com/shuawest/activemq-artemis-operator
@@ -632,7 +632,7 @@ spec:
                 serviceAccountName: activemq-artemis-operator
                 containers:
                   - name: activemq-artemis-operator
-                    image: quay.io/jowest/activemq-artemis-operator:0.13.0-continuity
+                    image: quay.io/jowest/activemq-artemis-operator:latest
                     command:
                       -  /home/activemq-artemis-operator/bin/entrypoint
                     imagePullPolicy: Always

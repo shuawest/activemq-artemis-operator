@@ -2,6 +2,8 @@ package v2alpha1activemqartemisaddress
 
 import (
 	"context"
+	"strconv"
+
 	brokerv2alpha1 "github.com/rh-messaging/activemq-artemis-operator/pkg/apis/broker/v2alpha1"
 	ss "github.com/rh-messaging/activemq-artemis-operator/pkg/resources/statefulsets"
 	mgmt "github.com/roddiekieley/activemq-artemis-management"
@@ -16,7 +18,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
-	"strconv"
 )
 
 var log = logf.Log.WithName("controller_v2alpha1activemqartemisaddress")
@@ -85,7 +86,7 @@ type ReconcileActiveMQArtemisAddress struct {
 func (r *ReconcileActiveMQArtemisAddress) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling ActiveMQArtemisAddress")
+	reqLogger.Info("Reconciling ActiveMQArtemisAddress 004")
 
 	// Fetch the ActiveMQArtemisAddress instance
 	instance := &brokerv2alpha1.ActiveMQArtemisAddress{}

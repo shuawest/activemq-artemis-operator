@@ -2,6 +2,7 @@ package v2alpha2activemqartemis
 
 import (
 	"context"
+
 	brokerv2alpha2 "github.com/rh-messaging/activemq-artemis-operator/pkg/apis/broker/v2alpha2"
 	"github.com/rh-messaging/activemq-artemis-operator/version"
 	appsv1 "k8s.io/api/apps/v1"
@@ -96,7 +97,7 @@ func (r *ReconcileActiveMQArtemis) Reconcile(request reconcile.Request) (reconci
 
 	// Log where we are and what we're doing
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling ActiveMQArtemis")
+	reqLogger.Info("Reconciling ActiveMQArtemis 004")
 
 	var err error = nil
 	var namespacedNameFSM *ActiveMQArtemisFSM = nil
@@ -150,7 +151,7 @@ func (r *ReconcileActiveMQArtemis) Reconcile(request reconcile.Request) (reconci
 		instance.SetAnnotations(map[string]string{})
 		instance.Spec.Version = CurrentVersion
 	}
-	reqLogger.Info("Reconciling ActiveMQArtemis", "Operator version", version.Version, "ActiveMQArtemis release", instance.Spec.Version)
+	reqLogger.Info("Reconciling ActiveMQArtemis 004", "Operator version", version.Version, "ActiveMQArtemis release", instance.Spec.Version)
 
 	// Do lookup to see if we have a fsm for the incoming name in the incoming namespace
 	// if not, create it

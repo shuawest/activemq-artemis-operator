@@ -81,29 +81,37 @@ type ReconcileActiveMQArtemisContinuity struct {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling ActiveMQArtemisContinuity 001")
+	reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002")
 
 	// Fetch the ActiveMQArtemisContinuity instance
 	instance := &continuityv2alpha2.ActiveMQArtemisContinuity{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 
-		// TODO: remove continuity link/config
-
 		if errors.IsNotFound(err) {
+			reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - IsNotFound no requeue")
+
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
 			return reconcile.Result{}, nil
 		}
+
+		reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - error do requeue")
+
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	} else {
+		reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - success")
+
 		err = createContinuity(instance, request, r.client)
 		if nil == err {
 			namespacedNameToContinuityName[request.NamespacedName] = *instance
 		}
 
+		if err != nil {
+			reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - err calling createContinuity " + err.Error())
+		}
 	}
 
 	return reconcile.Result{}, nil
@@ -112,7 +120,7 @@ func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request
 func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) error {
 
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Creating ActiveMQArtemisContinuity")
+	reqLogger.Info("Creating ActiveMQArtemisContinuity createContinuity")
 
 	var err error = nil
 	artemisArray := getPodBrokers(instance, request, client)

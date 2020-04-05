@@ -56,8 +56,10 @@ func (artemis *ArtemisContinuity) Configure(siteId string, activeOnStart bool, s
 	data, err := artemis.jolokia.Exec(url, jsonStr)
 
 	if data != nil {
-		reqLogger.Info("Received exec result '" + data.Value + "' status '" + strconv.Itoa(data.Status) + "'")
-	} else if err != nil {
+		reqLogger.Info("Received exec result '" + data.Value + "' status '" + strconv.Itoa(data.Status) + "', ip:port '" + artemis.ip + ":" + artemis.jolokiaPort)
+	}
+
+	if err != nil {
 		reqLogger.Info("Received exec err '" + err.Error() + "'")
 	}
 

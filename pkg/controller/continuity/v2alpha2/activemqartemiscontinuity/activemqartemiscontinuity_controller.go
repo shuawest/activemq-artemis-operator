@@ -108,24 +108,56 @@ func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request
 		if nil == err {
 			namespacedNameToContinuityName[request.NamespacedName] = *instance
 		}
+		// TODO: requeue the reconciler always
+		//       determine if jolokia fails to return error, or if first bootstrapped instance is just swallowed in a restart of the broker pod
+		//       check for bootstrap status
+		//       watch for changes to continuity CR, updated values, and reboot as necessary
 
 		if err != nil {
 			reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - err calling createContinuity " + err.Error())
 		}
 	}
 
-	return reconcile.Result{}, nil
+	err = retrieveBooted(instance, request, r.client)
+
+	//return reconcile.Result{}, nil
+	return reconcile.Result{Requeue: true}, nil
+}
+
+func retrieveBooted(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) error {
+	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+	reqLogger.Info("ActiveMQArtemisContinuity checking bootstrap status")
+
+	var err error = nil
+	artemisArray := getPodBrokers(instance, request, client)
+
+	if nil != artemisArray {
+		for _, a := range artemisArray {
+			if nil == a {
+				reqLogger.Info("IsBooted ActiveMQArtemisContinuity artemisArray had a nil!")
+				continue
+			}
+
+			res, err := a.IsBooted()
+
+			if nil != err {
+				reqLogger.Info("IsBooted ActiveMQArtemisContinuity error", instance.Spec.SiteId)
+				break
+			}
+
+			reqLogger.Info("IsBooted ActiveMQArtemisContinuity", "isbooted.result", res.Value, "siteid", instance.Spec.SiteId)
+		}
+	}
+
+	return err
 }
 
 func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) error {
-
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Creating ActiveMQArtemisContinuity createContinuity")
 
 	var err error = nil
 	artemisArray := getPodBrokers(instance, request, client)
-
-	reqLogger.Info("Pod brokers: " + strconv.Itoa(len(artemisArray)))
 
 	if nil != artemisArray {
 		for _, a := range artemisArray {

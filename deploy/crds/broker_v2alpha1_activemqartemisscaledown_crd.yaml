@@ -24,6 +24,7 @@ spec:
         spec:
           properties:
             localOnly:
+              description: 'If enabled, the controller only handles StatefulSets in a single namespace instead of across all namespaces.'
               type: boolean
           required:
             - localOnly

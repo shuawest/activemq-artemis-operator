@@ -1,168 +1,190 @@
 package continuity
 
 import (
+	"encoding/json"
 	"fmt"
-	"os"
 	"strconv"
 
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"github.com/rh-messaging/activemq-artemis-operator/pkg/continuity/jolokia"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 var log = logf.Log.WithName("continuity_mgmt")
 
-// TODO: remove after testing
-func init() {
-	logf.SetLogger(zap.LoggerTo(os.Stdout))
-}
-
-// type IArtemisContinuity interface {
-// 	NewArtemisContinuity(_ip string, _jolokiaPort string, _name string, _user string, _pass string) *ArtemisContinuity
-// 	ConfigureContinuity(siteId string, peerSiteUrl string, localUser string) (*jolokia.ExecData, error)
-// 	RemoveContinuity(siteId string) (*jolokia.ExecData, error)
-// 	FetchContinuity(siteId string) (*jolokia.ExecData, error)
-// 	ActivateSite(siteId string) (*jolokia.ExecData, error)
-// }
-
 type ArtemisContinuity struct {
-	ip          string
-	jolokiaPort string
-	name        string
-	user        string
-	pass        string
-	jolokia     *jolokia.Jolokia
+	name    string
+	jolokia jolokia.IJolokia
 }
 
-func NewArtemisContinuity(_ip string, _jolokiaPort string, _name string, _user string, _pass string) *ArtemisContinuity {
-	reqLogger := log.WithValues("ip", _ip, "port", _jolokiaPort, "name", _name, "user", _user, "pass", "***")
-	reqLogger.Info("New artemis")
+type ContinuityError struct {
+	Operation string `json:"operation"`
+	Detail    string `json:"detail"`
+	Status    string `json:"status"`
+	Cause     error  `json:"cause"`
+}
 
-	artemiscty := ArtemisContinuity{
-		ip:          _ip,
-		jolokiaPort: _jolokiaPort,
-		name:        _name,
-		user:        _user,
-		pass:        _pass,
-		jolokia:     jolokia.NewJolokia(_ip, _jolokiaPort, "/console/jolokia", _user, _pass),
-	}
-	return &artemiscty
+func (cme ContinuityError) Error() string {
+	msg, _ := json.Marshal(cme)
+	return string(msg)
+}
+
+type BootedStatus struct {
+	Booted bool `json:"Booted,omitempty"`
 }
 
 type BootedResult struct {
-	Booted bool `json:"Booted,omitempty"`
+	Value     BootedStatus `json:"value"`
+	Timestamp int          `json:"timestamp"`
+	Status    int          `json:"status"`
+	ErrorType string       `json:"error_type"`
+	Error     string       `json:"error"`
+}
+
+type ExecResult struct {
+	Timestamp int    `json:"timestamp"`
+	Status    int    `json:"status"`
+	ErrorType string `json:"error_type"`
+	Error     string `json:"error"`
+}
+
+func NewArtemisContinuity(_name string, _jolokia jolokia.IJolokia) *ArtemisContinuity {
+	ac := ArtemisContinuity{
+		name:    _name,
+		jolokia: _jolokia,
+	}
+	return &ac
 }
 
 func (artemis *ArtemisContinuity) IsBooted() (bool, error) {
 	url := fmt.Sprintf(`org.apache.activemq.artemis:broker="%s",component=continuity,name="continuity.bootstrap"`, artemis.name)
-	data, err := artemis.jolokia.Read(url)
 
-	if data != nil {
-		reqLogger := log.WithValues("artemis.name", artemis.name, "result", data.Value, "status", data.Status, "data.Value[Booted]", data.Value["Booted"])
-		reqLogger.Info("IsBooted received data")
-
-		return data.Value["Booted"].(bool), err
-		// data.Value["Booted"]
-		// bootedResult, ok := data.Value.(string)
-		// if ok {
-		// 	log.Info("IsBooted unmarshalled IS ok")
-
-		// 	// bootedResult := &BootedResult{}
-		// 	// err = json.Unmarshal([]byte(resBootedString), bootedResult)
-
-		// 	// reqLogger2 := log.WithValues("bootedResult", bootedResult, "err", err)
-		// 	// reqLogger2.Info("IsBooted unmarshalled data")
-
-		// 	//return bootedResult.Booted, err
-		// 	return false, err
-		// } else {
-		// 	log.Info("IsBooted unmarshalled NOT ok")
-		// }
-	}
-
+	// Call the service
+	body, err := artemis.jolokia.Read(url)
 	if err != nil {
-		reqLogger := log.WithValues("artemis.name", artemis.name, "err", err)
-		reqLogger.Info("IsBooted received data")
+		return false, ContinuityError{
+			Operation: "calling jolokia read service",
+			Detail:    err.Error(),
+			Cause:     err,
+		}
 	}
 
-	return false, err
+	// Unmarshal result
+	result := &BootedResult{}
+	err = json.Unmarshal([]byte(body), result)
+	if err != nil {
+		return false, ContinuityError{
+			Operation: "failed to unmarshal result",
+			Detail:    "body: " + body,
+			Cause:     err,
+		}
+	}
+
+	if result.Status != 200 {
+		return false, ContinuityError{
+			Operation: "jolokia returned fault",
+			Detail:    body,
+			Status:    strconv.Itoa(result.Status),
+			Cause:     err,
+		}
+	}
+
+	return result.Value.Booted, nil
 }
 
-func (artemis *ArtemisContinuity) Configure(siteId string, activeOnStart bool, servingAcceptors string, localConnectorRef string, remoteConnectorRefs string, reorgManagement bool) (*jolokia.ExecData, error) {
-	reqLogger := log.WithValues("artemis.name", artemis.name)
-
-	url := fmt.Sprintf(`org.apache.activemq.artemis:broker="%s",component=continuity,name=\"continuity.bootstrap\"`, artemis.name)
+func (artemis *ArtemisContinuity) Configure(siteId string, activeOnStart bool, servingAcceptors string, localConnectorRef string, remoteConnectorRefs string, reorgManagement bool) error {
+	url := fmt.Sprintf("org.apache.activemq.artemis:broker=\\\"%s\\\",component=continuity,name=\\\"continuity.bootstrap\\\"", artemis.name)
 	operation := "configure(java.lang.String,java.lang.Boolean,java.lang.String,java.lang.String,java.lang.String,java.lang.Boolean)"
 	parameters := fmt.Sprintf(`"%s",%t,"%s","%s","%s",%t`, siteId, activeOnStart, servingAcceptors, localConnectorRef, remoteConnectorRefs, reorgManagement)
 	jsonStr := fmt.Sprintf(`{ "type":"EXEC","mbean":"%s","operation":"%s","arguments":[%s] }`, url, operation, parameters)
 
-	reqLogger.Info("Sending exec url '" + url + "' json '" + jsonStr + "'")
+	body, err := artemis.jolokia.Exec(url, jsonStr)
+	return evaluateExecResult(body, err)
+}
 
-	data, err := artemis.jolokia.Exec(url, jsonStr)
+func (artemis *ArtemisContinuity) SetSecrets(localContinuityUser string, localContinuityPass string, remoteContinuityUser string, remoteContinuityPass string) error {
+	url := fmt.Sprintf("org.apache.activemq.artemis:broker=\\\"%s\\\",component=continuity,name=\\\"continuity.bootstrap\\\"", artemis.name)
+	operation := "setSecrets(java.lang.String,java.lang.String,java.lang.String,java.lang.String)"
+	parameters := fmt.Sprintf(`"%s","%s","%s","%s"`, localContinuityUser, localContinuityPass, remoteContinuityUser, remoteContinuityPass)
+	jsonStr := fmt.Sprintf(`{ "type":"EXEC","mbean":"%s","operation":"%s","arguments":[%s] }`, url, operation, parameters)
 
-	if data != nil {
-		reqLogger.Info("Configure received exec result '" + data.Value + "' status '" + strconv.Itoa(data.Status) + "', ip:port '" + artemis.ip + ":" + artemis.jolokiaPort)
-	}
+	body, err := artemis.jolokia.Exec(url, jsonStr)
+	return evaluateExecResult(body, err)
+}
 
+func (artemis *ArtemisContinuity) Tune(activationTimeout int, inflowStagingDelay int, bridgeInterval int, bridgeIntervalMultiplier float32, pollDuration int) error {
+	url := fmt.Sprintf("org.apache.activemq.artemis:broker=\\\"%s\\\",component=continuity,name=\\\"continuity.bootstrap\\\"", artemis.name)
+	operation := "tune(java.lang.Long,java.lang.Long,java.lang.Long,java.lang.Double,java.lang.Long)"
+	parameters := fmt.Sprintf(`%d,%d,%d,%f,%d`, activationTimeout, inflowStagingDelay, bridgeInterval, bridgeIntervalMultiplier, pollDuration)
+	jsonStr := fmt.Sprintf(`{ "type":"EXEC","mbean":"%s","operation":"%s","arguments":[%s] }`, url, operation, parameters)
+
+	body, err := artemis.jolokia.Exec(url, jsonStr)
+	return evaluateExecResult(body, err)
+}
+
+func (artemis *ArtemisContinuity) Boot() error {
+	url := fmt.Sprintf("org.apache.activemq.artemis:broker=\\\"%s\\\",component=continuity,name=\\\"continuity.bootstrap\\\"", artemis.name)
+	operation := "boot"
+	jsonStr := fmt.Sprintf(`{ "type":"EXEC","mbean":"%s","operation":"%s" }`, url, operation)
+
+	body, err := artemis.jolokia.Exec(url, jsonStr)
+	return evaluateExecResult(body, err)
+}
+
+func evaluateExecResult(body string, err error) error {
 	if err != nil {
-		reqLogger.Info("Configure received exec err '" + err.Error() + "'")
+		return ContinuityError{
+			Operation: "calling jolokia read service",
+			Detail:    err.Error(),
+			Cause:     err,
+		}
 	}
 
-	return data, err
+	// Unmarshal result
+	result := &ExecResult{}
+	err = json.Unmarshal([]byte(body), result)
+	if err != nil {
+		return ContinuityError{
+			Operation: "failed to unmarshal result",
+			Detail:    "body: " + body,
+			Cause:     err,
+		}
+	}
+
+	if result.Status != 200 {
+		return ContinuityError{
+			Operation: "jolokia returned fault",
+			Detail:    result.Error,
+			Status:    strconv.Itoa(result.Status),
+			Cause:     err,
+		}
+	}
+
+	return err
 }
 
-func (artemis *ArtemisContinuity) SetSecrets(localContinuityUser string, localContinuityPass string, remoteContinuityUser string, remoteContinuityPass string) (*jolokia.ExecData, error) {
-	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.bootstrap\\\""
-	parameters := `"` + localContinuityUser + `","` + localContinuityPass + `",` + `"` + remoteContinuityUser + `",` + `"` + remoteContinuityPass + `"`
-	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"setSecrets(java.lang.String,java.lang.String,java.lang.String,java.lang.String)","arguments":[` + parameters + `] }`
+// func (artemis *ArtemisContinuity) RebootContinuity() (*jolokia.ExecData, error) {
+// 	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.bootstrap\\\""
+// 	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"reboot" }`
 
-	data, err := artemis.jolokia.Exec(url, jsonStr)
+// 	data, err := artemis.jolokia.Exec(url, jsonStr)
 
-	return data, err
-}
+// 	return data, err
+// }
 
-func (artemis *ArtemisContinuity) Tune(activationTimeout int, inflowStagingDelay int, bridgeInterval int, bridgeIntervalMultiplier float32, pollDuration int) (*jolokia.ExecData, error) {
-	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.bootstrap\\\""
-	parameters := strconv.Itoa(activationTimeout) + `,` + strconv.Itoa(inflowStagingDelay) + `,` + strconv.Itoa(bridgeInterval) + `,` + fmt.Sprintf("%f", bridgeIntervalMultiplier) + `,` + strconv.Itoa(pollDuration)
-	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"tune(java.lang.Long,java.lang.Long,java.lang.Long,java.lang.Double,java.lang.Long)","arguments":[` + parameters + `] }`
+// func (artemis *ArtemisContinuity) DestroyContinuity() (*jolokia.ExecData, error) {
+// 	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.bootstrap\\\""
+// 	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"destory" }`
 
-	data, err := artemis.jolokia.Exec(url, jsonStr)
+// 	data, err := artemis.jolokia.Exec(url, jsonStr)
 
-	return data, err
-}
+// 	return data, err
+// }
 
-func (artemis *ArtemisContinuity) Boot() (*jolokia.ExecData, error) {
-	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.bootstrap\\\""
-	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"boot" }`
+// func (artemis *ArtemisContinuity) ActivateSite(siteId string, activationTimeout int64) (*jolokia.ExecData, error) {
+// 	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.service\\\""
+// 	parameters := strconv.FormatInt(activationTimeout, 10)
+// 	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"activateSite(java.lang.Long)","arguments":[` + parameters + `]` + ` }`
+// 	data, err := artemis.jolokia.Exec(url, jsonStr)
 
-	data, err := artemis.jolokia.Exec(url, jsonStr)
-
-	return data, err
-}
-
-func (artemis *ArtemisContinuity) RebootContinuity() (*jolokia.ExecData, error) {
-	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.bootstrap\\\""
-	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"reboot" }`
-
-	data, err := artemis.jolokia.Exec(url, jsonStr)
-
-	return data, err
-}
-
-func (artemis *ArtemisContinuity) DestroyContinuity() (*jolokia.ExecData, error) {
-	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.bootstrap\\\""
-	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"destory" }`
-
-	data, err := artemis.jolokia.Exec(url, jsonStr)
-
-	return data, err
-}
-
-func (artemis *ArtemisContinuity) ActivateSite(siteId string, activationTimeout int64) (*jolokia.ExecData, error) {
-	url := "org.apache.activemq.artemis:broker=\\\"" + artemis.name + "\\\",component=continuity,name=\\\"continuity.service\\\""
-	parameters := strconv.FormatInt(activationTimeout, 10)
-	jsonStr := `{ "type":"EXEC","mbean":"` + url + `","operation":"activateSite(java.lang.Long)","arguments":[` + parameters + `]` + ` }`
-	data, err := artemis.jolokia.Exec(url, jsonStr)
-
-	return data, err
-}
+// 	return data, err
+// }

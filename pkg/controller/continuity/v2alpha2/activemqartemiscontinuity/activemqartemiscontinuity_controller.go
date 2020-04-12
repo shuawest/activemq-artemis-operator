@@ -6,6 +6,7 @@ import (
 
 	continuityv2alpha2 "github.com/rh-messaging/activemq-artemis-operator/pkg/apis/continuity/v2alpha2"
 	mgmt "github.com/rh-messaging/activemq-artemis-operator/pkg/continuity"
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/continuity/jolokia"
 	ss "github.com/rh-messaging/activemq-artemis-operator/pkg/resources/statefulsets"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -138,14 +139,14 @@ func retrieveBooted(instance *continuityv2alpha2.ActiveMQArtemisContinuity, requ
 				continue
 			}
 
-			res, err := a.IsBooted()
+			isBooted, err := a.IsBooted()
 
 			if nil != err {
 				reqLogger.Info("IsBooted ActiveMQArtemisContinuity error", instance.Spec.SiteId)
 				break
 			}
 
-			reqLogger.Info("IsBooted ActiveMQArtemisContinuity", "isbooted.result", res.Value, "siteid", instance.Spec.SiteId)
+			reqLogger.Info("IsBooted ActiveMQArtemisContinuity", "isbooted.result", isBooted, "siteid", instance.Spec.SiteId)
 		}
 	}
 
@@ -165,10 +166,10 @@ func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, re
 				reqLogger.Info("Creating ActiveMQArtemisContinuity artemisArray had a nil!")
 				continue
 			}
-			_, errConfigure := a.Configure(instance.Spec.SiteId, instance.Spec.ActiveOnStart, instance.Spec.ServingAcceptors, "continuity-local", instance.Spec.RemoteConnectorRefs, instance.Spec.ReorgManagement)
-			_, errSecrets := a.SetSecrets(instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass, instance.Spec.RemoteContinuityUser, instance.Spec.RemoteContinuityPass)
-			_, errTune := a.Tune(instance.Spec.ActivationTimeout, instance.Spec.InflowStagingDelay, instance.Spec.BridgeInterval, instance.Spec.BridgeIntervalMultiplier, instance.Spec.PollDuration)
-			_, errBoot := a.Boot()
+			errConfigure := a.Configure(instance.Spec.SiteId, instance.Spec.ActiveOnStart, instance.Spec.ServingAcceptors, "continuity-local", instance.Spec.RemoteConnectorRefs, instance.Spec.ReorgManagement)
+			errSecrets := a.SetSecrets(instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass, instance.Spec.RemoteContinuityUser, instance.Spec.RemoteContinuityPass)
+			errTune := a.Tune(instance.Spec.ActivationTimeout, instance.Spec.InflowStagingDelay, instance.Spec.BridgeInterval, instance.Spec.BridgeIntervalMultiplier, instance.Spec.PollDuration)
+			errBoot := a.Boot()
 			if nil != errConfigure || nil != errSecrets || nil != errTune || nil != errBoot {
 				reqLogger.Info("Creating ActiveMQArtemisContinuity error for " + instance.Spec.SiteId)
 				break
@@ -227,7 +228,8 @@ func getPodBrokers(instance *continuityv2alpha2.ActiveMQArtemisContinuity, reque
 				}
 			} else {
 				reqLogger.Info("Pod found", "Namespace", request.Namespace, "Name", request.Name)
-				artemis := mgmt.NewArtemisContinuity(pod.Status.PodIP, "8161", "amq-broker")
+				jolokiaClient := jolokia.NewJolokia(pod.Status.PodIP, "8161", "/console/jolokia", instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass)
+				artemis := mgmt.NewArtemisContinuity("amq-broker", jolokiaClient)
 				artemisArray = append(artemisArray, artemis)
 			}
 		}

@@ -183,3 +183,9 @@ spec:
   - name: v2alpha2
     served: true
     storage: true
+  - name: v2alpha1
+    served: true
+    storage: false
+  - name: v1alpha1
+    served: false
+    storage: false

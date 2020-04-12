@@ -81,12 +81,15 @@ spec:
   keywords:
     - activemqartemis
     - operator
+    - continuity
   version: 0.13.0-continuity
   replaces: activemq-artemis-operator.v0.13.0
   maturity: alpha
   maintainers:
     - name: Red Hat
       email: rkieley@redhat.com
+    - name: Josh West - Continuity Community
+      email: jowest@redhat.com
   provider:
     name: Red Hat
   links:
@@ -152,12 +155,6 @@ spec:
             path: adminPassword
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:AdminUser'
-              - 'urn:alm:descriptor:com.tectonic.ui:password'
-          - description: The version of the broker deployment.
-            displayName: Version
-            path: version
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Version'
               - 'urn:alm:descriptor:com.tectonic.ui:password'
           - description: The number of broker pods to deploy
             displayName: Size
@@ -401,19 +398,6 @@ spec:
             path: console.useClientAuth
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:console'
-              - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-
-          - description: Set to true to enable automatic micro version product upgrades, disabled by default.
-            displayName: Enabled
-            path: upgrades.enabled
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:upgrades'
-              - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-          - description: Set to true to enable automatic micro version product upgrades, disabled by default. Requires spec.upgrades.enabled true.
-            displayName: Minor
-            path: upgrades.minor
-            x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:upgrades'
               - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
 
         statusDescriptors:

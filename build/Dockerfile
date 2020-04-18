@@ -60,4 +60,4 @@ LABEL \
       maintainer="Roddie Kieley <rkieley@redhat.com>, Josh West <jowest@redhat.com>"  \
       name="jowest/activemq-artemis-operator" \
       summary="ActiveMQ Artemis Broker Operator with Continuity"  \
-      version="0.13-continuity"
+      version="0.13.0-continuity"

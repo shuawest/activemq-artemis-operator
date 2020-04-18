@@ -16,7 +16,7 @@ items:
             annotations:
               categories: "Messaging with Continuity"
               certified: "false"
-              description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
+              description: 005 from operator continuity manifest - ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
               containerImage: quay.io/jowest/activemq-artemis-operator:latest
               createdAt: 2019-11-25T08:16:32Z
               capabilities: Seamless Upgrades
@@ -87,7 +87,7 @@ items:
             operatorframework.io/arch.amd64: supported
           spec:
             displayName: ActiveMQ Artemis
-            description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters
+            description: 005 from operator continuity manifest - ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
             keywords:
               - activemqartemis
               - operator
@@ -98,7 +98,7 @@ items:
             maintainers:
               - name: Red Hat
                 email: rkieley@redhat.com
-              - name: Josh West - Continuity Community
+              - name: Josh West - Continuity Community 2
                 email: jowest@redhat.com
             provider:
               name: Red Hat
@@ -142,7 +142,7 @@ items:
                       served: false
                       storage: false
                   kind: ActiveMQArtemis
-                  description: An instance of Active MQ Artemis
+                  description: 005 An instance of Active MQ Artemis
                   displayName: ActiveMQ Artemis
                   resources:
                     - kind: Service
@@ -154,7 +154,7 @@ items:
                     - kind: Secret
                       version: v1
                   specDescriptors:
-                    - description: User name for standard broker user. It is required for connecting to the broker and the web console. If left empty, it will be generated.
+                    - description: 005 User name for standard broker user. It is required for connecting to the broker and the web console. If left empty, it will be generated.
                       displayName: AdminUser
                       path: adminUser
                       x-descriptors:
@@ -420,7 +420,7 @@ items:
                 - name: activemqartemisaddresses.broker.amq.io
                   version: v2alpha1
                   kind: ActiveMQArtemisAddress
-                  description: Adding and removing addresses via custom resource definitions
+                  description: 005 Adding and removing addresses via custom resource definitions
                   displayName: ActiveMQ Artemis Address
                   specDescriptors:
                     - description: The Queue Name
@@ -445,7 +445,7 @@ items:
                 - name: activemqartemisscaledowns.broker.amq.io
                   version: v2alpha1
                   kind: ActiveMQArtemisScaledown
-                  description: Provides message migration on clustered broker scaledown
+                  description: 005 Provides message migration on clustered broker scaledown
                   displayName: ActiveMQ Artemis Scaledown
                   specDescriptors:
                     - description: Triggered by main ActiveMQArtemis CRD messageMigration entry
@@ -458,10 +458,10 @@ items:
                 - name: activemqartemiscontinuities.continuity.amq.io
                   version: v2alpha2
                   kind: ActiveMQArtemisContinuity
-                  description: Configures the broker cluster for asynchronous site replication
+                  description: 005 Configures the broker cluster for asynchronous site replication
                   displayName: ActiveMQ Artemis Continuity
                   specDescriptors:
-                    - description: Name of the continuity site. Must be unique in the set of peers (is same across the artemis cluster). [Required]
+                    - description: 005 Name of the continuity site. Must be unique in the set of peers (is same across the artemis cluster). [Required]
                       displayName: SiteId
                       path: siteId
                       x-descriptors:

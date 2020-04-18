@@ -31,7 +31,7 @@ If pushing to another quay repository, replace with your username or other repot
 for example : 
 
 ```bash
-operator-courier push deploy/olm-catalog/activemq-artemis-operator/0.13.0 ahameed amqoperator 0.13.0 "basic YWhhbWVlZDpIYW1lZWRAMTIz"
+ push deploy/olm-catalog/actioperator-couriervemq-artemis-operator/0.13.0 ahameed amqoperator 0.13.0 "basic YWhhbWVlZDpIYW1lZWRAMTIz"
 ```
 
 

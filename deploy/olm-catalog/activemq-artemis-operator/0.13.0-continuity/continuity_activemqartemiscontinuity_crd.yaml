@@ -1,6 +1,7 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
+  creationTimestamp: null
   name: activemqartemiscontinuities.continuity.amq.io
 spec:
   group: continuity.amq.io
@@ -22,7 +23,7 @@ spec:
         spec:
           properties:
             siteId:
-              description: Name the continuity site. Must be unique in the set of
+              description: 006 from continuity - Name the continuity site. Must be unique in the set of
                 peers (is same across the artemis cluster). Required for continuity.
               type: string
             activeOnStart:

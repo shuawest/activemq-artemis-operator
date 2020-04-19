@@ -82,7 +82,7 @@ type ReconcileActiveMQArtemisContinuity struct {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002")
+	reqLogger.Info("Reconciling ActiveMQArtemisContinuity")
 
 	// Fetch the ActiveMQArtemisContinuity instance
 	instance := &continuityv2alpha2.ActiveMQArtemisContinuity{}
@@ -90,7 +90,7 @@ func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request
 	if err != nil {
 
 		if errors.IsNotFound(err) {
-			reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - IsNotFound no requeue")
+			reqLogger.Info("Reconciling ActiveMQArtemisContinuity - IsNotFound no requeue")
 
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
@@ -98,12 +98,12 @@ func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request
 			return reconcile.Result{}, nil
 		}
 
-		reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - error do requeue")
+		reqLogger.Info("Reconciling ActiveMQArtemisContinuity - error do requeue")
 
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	} else {
-		reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - success")
+		reqLogger.Info("Reconciling ActiveMQArtemisContinuity - success")
 
 		err = createContinuity(instance, request, r.client)
 		if nil == err {
@@ -115,7 +115,7 @@ func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request
 		//       watch for changes to continuity CR, updated values, and reboot as necessary
 
 		if err != nil {
-			reqLogger.Info("Reconciling ActiveMQArtemisContinuity 002 - err calling createContinuity " + err.Error())
+			reqLogger.Info("Reconciling ActiveMQArtemisContinuity - err calling createContinuity " + err.Error())
 		}
 	}
 

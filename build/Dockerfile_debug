@@ -25,7 +25,7 @@ ENV USER_NAME=${BROKER_NAME}-operator
 ENV CGO_ENABLED=0
 ENV GOPATH=/tmp/go
 ENV JBOSS_IMAGE_NAME="amq7/amq-broker-rhel7-operator"
-ENV JBOSS_IMAGE_VERSION="0.13-continuity"
+ENV JBOSS_IMAGE_VERSION="0.13.0-continuity"
 ENV XDG_CONFIG_HOME="/tmp"
 
 WORKDIR /
@@ -68,4 +68,4 @@ LABEL \
       maintainer="Roddie Kieley <rkieley@redhat.com>, Josh West <jowest@redhat.com>"  \
       name="amq7/amq-broker-continuity-operator" \
       summary="ActiveMQ Artemis Broker Operator with Continuity"  \
-      version="0.13-continuity"
+      version="0.13.0-continuity"

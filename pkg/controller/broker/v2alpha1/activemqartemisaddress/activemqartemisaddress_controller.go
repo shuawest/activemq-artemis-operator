@@ -86,7 +86,7 @@ type ReconcileActiveMQArtemisAddress struct {
 func (r *ReconcileActiveMQArtemisAddress) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling ActiveMQArtemisAddress 004")
+	reqLogger.Info("Reconciling ActiveMQArtemisAddress")
 
 	// Fetch the ActiveMQArtemisAddress instance
 	instance := &brokerv2alpha1.ActiveMQArtemisAddress{}

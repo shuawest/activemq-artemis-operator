@@ -3,6 +3,7 @@ package v2alpha2activemqartemis
 import (
 	"context"
 	"fmt"
+
 	"github.com/RHsyseng/operator-utils/pkg/olm"
 	"github.com/RHsyseng/operator-utils/pkg/resource"
 	"github.com/RHsyseng/operator-utils/pkg/resource/compare"

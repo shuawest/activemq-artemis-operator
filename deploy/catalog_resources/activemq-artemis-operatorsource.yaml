@@ -7,5 +7,5 @@ spec:
   type: appregistry
   endpoint: https://quay.io/cnr
   registryNamespace: jowest
-  displayName: "222 ActiveMQ Artemis Operator with Continuity"
+  displayName: "ActiveMQ Artemis Operator with Continuity"
   publisher: "Red Hat - Solution Architecture"

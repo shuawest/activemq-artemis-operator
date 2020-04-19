@@ -97,7 +97,7 @@ func (r *ReconcileActiveMQArtemis) Reconcile(request reconcile.Request) (reconci
 
 	// Log where we are and what we're doing
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling ActiveMQArtemis 004")
+	reqLogger.Info("Reconciling ActiveMQArtemis")
 
 	var err error = nil
 	var namespacedNameFSM *ActiveMQArtemisFSM = nil
@@ -151,7 +151,7 @@ func (r *ReconcileActiveMQArtemis) Reconcile(request reconcile.Request) (reconci
 		instance.SetAnnotations(map[string]string{})
 		instance.Spec.Version = CurrentVersion
 	}
-	reqLogger.Info("Reconciling ActiveMQArtemis 004", "Operator version", version.Version, "ActiveMQArtemis release", instance.Spec.Version)
+	reqLogger.Info("Reconciling ActiveMQArtemis", "Operator version", version.Version, "ActiveMQArtemis release", instance.Spec.Version)
 
 	// Do lookup to see if we have a fsm for the incoming name in the incoming namespace
 	// if not, create it

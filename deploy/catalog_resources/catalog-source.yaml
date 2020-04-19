@@ -16,8 +16,8 @@ items:
             annotations:
               categories: "Messaging with Continuity"
               certified: "false"
-              description: 005 from operator continuity manifest - ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
-              containerImage: quay.io/jowest/activemq-artemis-operator:latest
+              description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
+              containerImage: quay.io/jowest/activemq-artemis-operator:0.13.0-continuity
               createdAt: 2019-11-25T08:16:32Z
               capabilities: Seamless Upgrades
               repository: https://github.com/shuawest/activemq-artemis-operator
@@ -87,7 +87,7 @@ items:
             operatorframework.io/arch.amd64: supported
           spec:
             displayName: ActiveMQ Artemis
-            description: 005 from operator continuity manifest - ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
+            description: ActiveMQ Artemis Operator provides the ability to deploy and manage stateful ActiveMQ Artemis broker clusters, with asynchronous replication across sites for continuity
             keywords:
               - activemqartemis
               - operator
@@ -129,6 +129,135 @@ items:
                 supported: false
             customresourcedefinitions:
               owned:
+                - name: activemqartemisaddresses.broker.amq.io
+                  version: v2alpha1
+                  kind: ActiveMQArtemisAddress
+                  description: Adding and removing addresses via custom resource definitions
+                  displayName: ActiveMQ Artemis Address
+                  specDescriptors:
+                    - description: The Queue Name
+                      displayName: Queue Name
+                      path: queueName
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ActiveMQArtemis'
+                        - 'urn:alm:descriptor:com.tectonic.ui:text'
+                    - description: The Address Name
+                      displayName: Address Name
+                      path: addressName
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ActiveMQArtemis'
+                        - 'urn:alm:descriptor:com.tectonic.ui:text'
+                    - description: The Routing Type
+                      displayName: Routing Type
+                      path: routingType
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ActiveMQArtemis'
+                        - 'urn:alm:descriptor:com.tectonic.ui:text'
+          
+                - name: activemqartemisscaledowns.broker.amq.io
+                  version: v2alpha1
+                  kind: ActiveMQArtemisScaledown
+                  description: Provides message migration on clustered broker scaledown
+                  displayName: ActiveMQ Artemis Scaledown
+                  specDescriptors:
+                    - description: Triggered by main ActiveMQArtemis CRD messageMigration entry
+                      displayName: LocalOnly
+                      path: localOnly
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:SingleNamespace'
+                        - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+          
+                - name: activemqartemiscontinuities.continuity.amq.io
+                  version: v2alpha2
+                  kind: ActiveMQArtemisContinuity
+                  description: Configures the broker cluster for asynchronous site replication
+                  displayName: ActiveMQ Artemis Continuity
+                  specDescriptors:
+                    - description: Name of the continuity site. Must be unique in the set of peers (is same across the artemis cluster). [Required]
+                      displayName: SiteId
+                      path: siteId
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
+                        - 'urn:alm:descriptor:com.tectonic.ui:text'
+                    - description: Identifies this is the site that should be active when first started. If another active site is connected to, this site will defer to the other. You can also start both sites inactive and explictly activate the desired start.
+                      displayName: ActiveOnStart
+                      path: activeOnStart
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
+                        - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+                    - description: List of acceptors exposed for external consumption that will be enabled/disabled during site swapover. Comma or semicolon separated.
+                      displayName: ServingAcceptors
+                      path: servingAcceptors
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
+                        - 'urn:alm:descriptor:com.tectonic.ui:text'
+                    - description: List of connectors that point at the peer site.
+                      displayName: RemoteConnectorRefs
+                      path: remoteConnectorRefs
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
+                        - 'urn:alm:descriptor:com.tectonic.ui:text'
+                    - description: Whether or not to reorganized all the address, queue, divert, and bridge primitives under the continuity hierarchy in JMX/Jolokia. 
+                      displayName: ReorgManagement
+                      path: reorgManagement
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
+                        - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+                    - description: Username to connect to the local broker for controlling continuity. [Required]
+                      displayName: LocalContinuityUser
+                      path: localContinuityUser
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuitySecrets'
+                        - 'urn:alm:descriptor:com.tectonic.ui:text'
+                    - description: Password to connect to the local broker for controlling continuity. [Required]
+                      displayName: LocalContinuityPass
+                      path: localContinuityPass
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuitySecrets'
+                        - 'urn:alm:descriptor:com.tectonic.ui:password'
+                    - description: Username to connect to the remote broker for continuity connections. [Required]
+                      displayName: RemoteContinuityUser
+                      path: remoteContinuityUser
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuitySecrets'
+                        - 'urn:alm:descriptor:com.tectonic.ui:text'
+                    - description: Password to connect to the remote broker for continuity connections. [Required]
+                      displayName: RemoteContinuityPass
+                      path: remoteContinuityPass
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuitySecrets'
+                        - 'urn:alm:descriptor:com.tectonic.ui:password'
+                    - description: Time in milliseconds to activate a site and start serving clients, overriding the wait for the peer site to be exhausted, and acks to be consumed. The default is 300000 ms or 5 minutes.
+                      displayName: ActivationTimeout
+                      path: activationTimeout
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
+                        - 'urn:alm:descriptor:com.tectonic.ui:number'
+                    - description: Amount of time in millseconds to delay messages in the inflow staging queues before delivering them to the target queues. Useful for active:active site topologies. The default 1 minute.
+                      displayName: InflowStagingDelay
+                      path: inflowStagingDelay
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
+                        - 'urn:alm:descriptor:com.tectonic.ui:number'
+                    - description: Bridge reconnection interval for all the bridges created by the continuity plugin. The default is 1000 ms or 1 second.
+                      displayName: BridgeInterval
+                      path: bridgeInterval
+                      x-descriptors: 
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
+                        - 'urn:alm:descriptor:com.tectonic.ui:number'
+                    - description: Bridge reconnection interval backoff multiplier for all the bridges created by the continuity plugin. The default is 0.5.
+                      displayName: BridgeIntervalMultiplier
+                      path: bridgeIntervalMultiplier
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
+                        - 'urn:alm:descriptor:com.tectonic.ui:number'
+                    - description: Time in milliseconds between polls for status checks during swapover. The default is 100 ms.
+                      displayName: PollDuration
+                      path: pollDuration
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
+                        - 'urn:alm:descriptor:com.tectonic.ui:number'
+          
                 - name: activemqartemises.broker.amq.io
                   version: v2alpha2
                   versions:
@@ -142,7 +271,7 @@ items:
                       served: false
                       storage: false
                   kind: ActiveMQArtemis
-                  description: 005 An instance of Active MQ Artemis
+                  description: 006 An instance of Active MQ Artemis
                   displayName: ActiveMQ Artemis
                   resources:
                     - kind: Service
@@ -154,7 +283,7 @@ items:
                     - kind: Secret
                       version: v1
                   specDescriptors:
-                    - description: 005 User name for standard broker user. It is required for connecting to the broker and the web console. If left empty, it will be generated.
+                    - description: User name for standard broker user. It is required for connecting to the broker and the web console. If left empty, it will be generated.
                       displayName: AdminUser
                       path: adminUser
                       x-descriptors:
@@ -165,6 +294,12 @@ items:
                       path: adminPassword
                       x-descriptors:
                         - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:AdminUser'
+                        - 'urn:alm:descriptor:com.tectonic.ui:password'
+                    - description: The version of the broker deployment.
+                      displayName: Version
+                      path: version
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Version'
                         - 'urn:alm:descriptor:com.tectonic.ui:password'
                     - description: The number of broker pods to deploy
                       displayName: Size
@@ -410,6 +545,19 @@ items:
                         - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:console'
                         - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
           
+                    - description: Set to true to enable automatic micro version product upgrades, disabled by default.
+                      displayName: Enabled
+                      path: upgrades.enabled
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:upgrades'
+                        - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+                    - description: Set to true to enable automatic micro version product upgrades, disabled by default. Requires spec.upgrades.enabled true.
+                      displayName: Minor
+                      path: upgrades.minor
+                      x-descriptors:
+                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:upgrades'
+                        - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+          
                   statusDescriptors:
                     - description: The current pods
                       displayName: Pods Status
@@ -417,134 +565,6 @@ items:
                       x-descriptors:
                         - "urn:alm:descriptor:com.tectonic.ui:podStatuses"
           
-                - name: activemqartemisaddresses.broker.amq.io
-                  version: v2alpha1
-                  kind: ActiveMQArtemisAddress
-                  description: 005 Adding and removing addresses via custom resource definitions
-                  displayName: ActiveMQ Artemis Address
-                  specDescriptors:
-                    - description: The Queue Name
-                      displayName: Queue Name
-                      path: queueName
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ActiveMQArtemis'
-                        - 'urn:alm:descriptor:com.tectonic.ui:text'
-                    - description: The Address Name
-                      displayName: Address Name
-                      path: addressName
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ActiveMQArtemis'
-                        - 'urn:alm:descriptor:com.tectonic.ui:text'
-                    - description: The Routing Type
-                      displayName: Routing Type
-                      path: routingType
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ActiveMQArtemis'
-                        - 'urn:alm:descriptor:com.tectonic.ui:text'
-          
-                - name: activemqartemisscaledowns.broker.amq.io
-                  version: v2alpha1
-                  kind: ActiveMQArtemisScaledown
-                  description: 005 Provides message migration on clustered broker scaledown
-                  displayName: ActiveMQ Artemis Scaledown
-                  specDescriptors:
-                    - description: Triggered by main ActiveMQArtemis CRD messageMigration entry
-                      displayName: LocalOnly
-                      path: localOnly
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:SingleNamespace'
-                        - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-          
-                - name: activemqartemiscontinuities.continuity.amq.io
-                  version: v2alpha2
-                  kind: ActiveMQArtemisContinuity
-                  description: 005 Configures the broker cluster for asynchronous site replication
-                  displayName: ActiveMQ Artemis Continuity
-                  specDescriptors:
-                    - description: 005 Name of the continuity site. Must be unique in the set of peers (is same across the artemis cluster). [Required]
-                      displayName: SiteId
-                      path: siteId
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
-                        - 'urn:alm:descriptor:com.tectonic.ui:text'
-                    - description: Identifies this is the site that should be active when first started. If another active site is connected to, this site will defer to the other. You can also start both sites inactive and explictly activate the desired start.
-                      displayName: ActiveOnStart
-                      path: activeOnStart
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
-                        - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-                    - description: List of acceptors exposed for external consumption that will be enabled/disabled during site swapover. Comma or semicolon separated.
-                      displayName: ServingAcceptors
-                      path: servingAcceptors
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
-                        - 'urn:alm:descriptor:com.tectonic.ui:text'
-                    - description: List of connectors that point at the peer site.
-                      displayName: RemoteConnectorRefs
-                      path: remoteConnectorRefs
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
-                        - 'urn:alm:descriptor:com.tectonic.ui:text'
-                    - description: Whether or not to reorganized all the address, queue, divert, and bridge primitives under the continuity hierarchy in JMX/Jolokia. 
-                      displayName: ReorgManagement
-                      path: reorgManagement
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:Continuity'
-                        - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-                    - description: Username to connect to the local broker for controlling continuity. [Required]
-                      displayName: LocalContinuityUser
-                      path: localContinuityUser
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuitySecrets'
-                        - 'urn:alm:descriptor:com.tectonic.ui:text'
-                    - description: Password to connect to the local broker for controlling continuity. [Required]
-                      displayName: LocalContinuityPass
-                      path: localContinuityPass
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuitySecrets'
-                        - 'urn:alm:descriptor:com.tectonic.ui:password'
-                    - description: Username to connect to the remote broker for continuity connections. [Required]
-                      displayName: RemoteContinuityUser
-                      path: remoteContinuityUser
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuitySecrets'
-                        - 'urn:alm:descriptor:com.tectonic.ui:text'
-                    - description: Password to connect to the remote broker for continuity connections. [Required]
-                      displayName: RemoteContinuityPass
-                      path: remoteContinuityPass
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuitySecrets'
-                        - 'urn:alm:descriptor:com.tectonic.ui:password'
-                    - description: Time in milliseconds to activate a site and start serving clients, overriding the wait for the peer site to be exhausted, and acks to be consumed. The default is 300000 ms or 5 minutes.
-                      displayName: ActivationTimeout
-                      path: activationTimeout
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
-                        - 'urn:alm:descriptor:com.tectonic.ui:number'
-                    - description: Amount of time in millseconds to delay messages in the inflow staging queues before delivering them to the target queues. Useful for active:active site topologies. The default 1 minute.
-                      displayName: InflowStagingDelay
-                      path: inflowStagingDelay
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
-                        - 'urn:alm:descriptor:com.tectonic.ui:number'
-                    - description: Bridge reconnection interval for all the bridges created by the continuity plugin. The default is 1000 ms or 1 second.
-                      displayName: BridgeInterval
-                      path: bridgeInterval
-                      x-descriptors: 
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
-                        - 'urn:alm:descriptor:com.tectonic.ui:number'
-                    - description: Bridge reconnection interval backoff multiplier for all the bridges created by the continuity plugin. The default is 0.5.
-                      displayName: BridgeIntervalMultiplier
-                      path: bridgeIntervalMultiplier
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
-                        - 'urn:alm:descriptor:com.tectonic.ui:number'
-                    - description: Time in milliseconds between polls for status checks during swapover. The default is 100 ms.
-                      displayName: PollDuration
-                      path: pollDuration
-                      x-descriptors:
-                        - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:ContinuityTuning'
-                        - 'urn:alm:descriptor:com.tectonic.ui:number'
             install:
               strategy: deployment
               spec:
@@ -645,6 +665,7 @@ items:
         - apiVersion: apiextensions.k8s.io/v1beta1
           kind: CustomResourceDefinition
           metadata:
+            creationTimestamp: null
             name: activemqartemis.broker.amq.io
           spec:
             group: broker.amq.io
@@ -836,6 +857,7 @@ items:
         - apiVersion: apiextensions.k8s.io/v1beta1
           kind: CustomResourceDefinition
           metadata:
+            creationTimestamp: null
             name: activemqartemisaddresses.broker.amq.io
           spec:
             group: broker.amq.io
@@ -883,6 +905,7 @@ items:
         - apiVersion: apiextensions.k8s.io/v1beta1
           kind: CustomResourceDefinition
           metadata:
+            creationTimestamp: null
             name: activemqartemisscaledowns.broker.amq.io
           spec:
             group: broker.amq.io
@@ -924,6 +947,7 @@ items:
         - apiVersion: apiextensions.k8s.io/v1beta1
           kind: CustomResourceDefinition
           metadata:
+            creationTimestamp: null
             name: activemqartemiscontinuities.continuity.amq.io
           spec:
             group: continuity.amq.io

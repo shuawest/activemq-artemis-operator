@@ -31,7 +31,7 @@ spec:
               properties:
                 adminUser:
                   type: string
-                  description: 006 User name for standard broker user. It is required for connecting to the broker. If left empty, it will be generated.
+                  description: User name for standard broker user. It is required for connecting to the broker. If left empty, it will be generated.
                 adminPassword:
                   type: string
                   description: Password for standard broker user. It is required for connecting to the broker. If left empty, it will be generated.

@@ -23,7 +23,7 @@ spec:
         spec:
           properties:
             siteId:
-              description: 006 from continuity - Name the continuity site. Must be unique in the set of
+              description: Name the continuity site. Must be unique in the set of
                 peers (is same across the artemis cluster). Required for continuity.
               type: string
             activeOnStart:

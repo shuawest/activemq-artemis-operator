@@ -23,7 +23,7 @@ ENV USER_NAME=${BROKER_NAME}-operator
 ENV CGO_ENABLED=0
 ENV GOPATH=/tmp/go
 ENV JBOSS_IMAGE_NAME="jowest/activemq-artemis-operator"
-ENV JBOSS_IMAGE_VERSION="0.13-continuity"
+ENV JBOSS_IMAGE_VERSION="0.13.0-continuity"
 
 WORKDIR /
 

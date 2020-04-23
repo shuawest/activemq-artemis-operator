@@ -1,14 +1,15 @@
 package environments
 
 import (
-	"github.com/rh-messaging/activemq-artemis-operator/pkg/resources/secrets"
-	svc "github.com/rh-messaging/activemq-artemis-operator/pkg/resources/services"
-	"github.com/rh-messaging/activemq-artemis-operator/pkg/utils/random"
-	corev1 "k8s.io/api/core/v1"
 	"math"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/resources/secrets"
+	svc "github.com/rh-messaging/activemq-artemis-operator/pkg/resources/services"
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/utils/random"
+	corev1 "k8s.io/api/core/v1"
 
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -148,76 +149,77 @@ func AddEnvVarForBasic(requireLogin string, journalType string) []corev1.EnvVar 
 	//	journalType = "nio"
 	//}
 	//
+
 	envVarArray := []corev1.EnvVar{
 		{
-			"AMQ_ROLE",
-			"admin", //GetPropertyForCR("AMQ_ROLE", cr, "admin"),
-			nil,
+			Name:      "AMQ_ROLE",
+			Value:     "admin", //GetPropertyForCR("AMQ_ROLE", cr, "admin"),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_NAME",
-			"amq-broker", //GetPropertyForCR("AMQ_NAME", cr, "amq-broker"),
-			nil,
+			Name:      "AMQ_NAME",
+			Value:     "amq-broker", //GetPropertyForCR("AMQ_NAME", cr, "amq-broker"),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_TRANSPORTS",
-			"", //GetPropertyForCR("AMQ_TRANSPORTS", cr, ""),
-			nil,
+			Name:      "AMQ_TRANSPORTS",
+			Value:     "", //GetPropertyForCR("AMQ_TRANSPORTS", cr, ""),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_QUEUES",
-			"", //GetPropertyForCR("AMQ_QUEUES", cr, ""),
-			nil,
+			Name:      "AMQ_QUEUES",
+			Value:     "", //GetPropertyForCR("AMQ_QUEUES", cr, ""),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_ADDRESSES",
-			"", //GetPropertyForCR("AMQ_ADDRESSES", cr, ""),
-			nil,
+			Name:      "AMQ_ADDRESSES",
+			Value:     "", //GetPropertyForCR("AMQ_ADDRESSES", cr, ""),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_GLOBAL_MAX_SIZE",
-			"100 mb", //GetPropertyForCR("AMQ_GLOBAL_MAX_SIZE", cr, "100 mb"),
-			nil,
+			Name:      "AMQ_GLOBAL_MAX_SIZE",
+			Value:     "100 mb", //GetPropertyForCR("AMQ_GLOBAL_MAX_SIZE", cr, "100 mb"),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_REQUIRE_LOGIN",
-			requireLogin, //GetPropertyForCR("AMQ_REQUIRE_LOGIN", cr, "false"),
-			nil,
+			Name:      "AMQ_REQUIRE_LOGIN",
+			Value:     requireLogin, //GetPropertyForCR("AMQ_REQUIRE_LOGIN", cr, "false"),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_EXTRA_ARGS",
-			"--no-autotune", //GetPropertyForCR("AMQ_EXTRA_ARGS", cr, "--no-autotune"),
-			nil,
+			Name:      "AMQ_EXTRA_ARGS",
+			Value:     "--no-autotune", //GetPropertyForCR("AMQ_EXTRA_ARGS", cr, "--no-autotune"),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_ANYCAST_PREFIX",
-			"", //GetPropertyForCR("AMQ_ANYCAST_PREFIX", cr, ""),
-			nil,
+			Name:      "AMQ_ANYCAST_PREFIX",
+			Value:     "", //GetPropertyForCR("AMQ_ANYCAST_PREFIX", cr, ""),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_MULTICAST_PREFIX",
-			"", //GetPropertyForCR("AMQ_MULTICAST_PREFIX", cr, ""),
-			nil,
+			Name:      "AMQ_MULTICAST_PREFIX",
+			Value:     "", //GetPropertyForCR("AMQ_MULTICAST_PREFIX", cr, ""),
+			ValueFrom: nil,
 		},
 		{
-			"POD_NAMESPACE",
-			"", // Set to the field metadata.namespace in current object
-			nil,
+			Name:      "POD_NAMESPACE",
+			Value:     "", // Set to the field metadata.namespace in current object
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_JOURNAL_TYPE",
-			journalType, //GetPropertyForCR("AMQ_JOURNAL_TYPE", cr, "nio"),
-			nil,
+			Name:      "AMQ_JOURNAL_TYPE",
+			Value:     journalType, //GetPropertyForCR("AMQ_JOURNAL_TYPE", cr, "nio"),
+			ValueFrom: nil,
 		},
 		{
-			"TRIGGERED_ROLL_COUNT",
-			"0",
-			nil,
+			Name:      "TRIGGERED_ROLL_COUNT",
+			Value:     "0",
+			ValueFrom: nil,
 		},
 		{
-			"PING_SVC_NAME",
-			svc.PingNameBuilder.Name(),
-			nil,
+			Name:      "PING_SVC_NAME",
+			Value:     svc.PingNameBuilder.Name(),
+			ValueFrom: nil,
 		},
 	}
 
@@ -228,14 +230,14 @@ func AddEnvVarForPersistent(customResourceName string) []corev1.EnvVar {
 
 	envVarArray := []corev1.EnvVar{
 		{
-			"AMQ_DATA_DIR",
-			"/opt/" + customResourceName + "/data", //GetPropertyForCR("AMQ_DATA_DIR", cr, "/opt/"+cr.Name+"/data"),
-			nil,
+			Name:      "AMQ_DATA_DIR",
+			Value:     "/opt/" + customResourceName + "/data", //GetPropertyForCR("AMQ_DATA_DIR", cr, "/opt/"+cr.Name+"/data"),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_DATA_DIR_LOGGING",
-			"true", //GetPropertyForCR("AMQ_DATA_DIR_LOGGING", cr, "true"),
-			nil,
+			Name:      "AMQ_DATA_DIR_LOGGING",
+			Value:     "true", //GetPropertyForCR("AMQ_DATA_DIR_LOGGING", cr, "true"),
+			ValueFrom: nil,
 		},
 	}
 
@@ -299,19 +301,19 @@ func AddEnvVarForCluster() []corev1.EnvVar {
 
 	envVarArray := []corev1.EnvVar{
 		{
-			"AMQ_CLUSTERED",
-			"true", //GetPropertyForCR("AMQ_CLUSTERED", cr, "true"),
-			nil,
+			Name:      "AMQ_CLUSTERED",
+			Value:     "true", //GetPropertyForCR("AMQ_CLUSTERED", cr, "true"),
+			ValueFrom: nil,
 		},
 		{
-			"AMQ_CLUSTER_USER",
-			"",
-			clusterUserEnvVarSource,
+			Name:      "AMQ_CLUSTER_USER",
+			Value:     "",
+			ValueFrom: clusterUserEnvVarSource,
 		},
 		{
-			"AMQ_CLUSTER_PASSWORD",
-			"",
-			clusterPasswordEnvVarSource,
+			Name:      "AMQ_CLUSTER_PASSWORD",
+			Value:     "",
+			ValueFrom: clusterPasswordEnvVarSource,
 		},
 	}
 
@@ -352,9 +354,9 @@ func BoolSyncCausedUpdateOn(containers []corev1.Container, envVarName string, up
 
 	if !found || needsUpdate {
 		retEnvVar = &corev1.EnvVar{
-			envVarName,
-			strconv.FormatBool(updatedValue),
-			nil,
+			Name:      envVarName,
+			Value:     strconv.FormatBool(updatedValue),
+			ValueFrom: nil,
 		}
 	}
 
@@ -381,9 +383,9 @@ func StringSyncCausedUpdateOn(containers []corev1.Container, envVarName string, 
 
 	if !found || needsUpdate {
 		retEnvVar = &corev1.EnvVar{
-			envVarName,
-			updatedValue,
-			nil,
+			Name:      envVarName,
+			Value:     updatedValue,
+			ValueFrom: nil,
 		}
 	}
 
@@ -408,9 +410,9 @@ func IncrementTriggeredRollCount(containers []corev1.Container) error {
 	}
 
 	newTriggeredRollCountEnvVar := corev1.EnvVar{
-		"TRIGGERED_ROLL_COUNT",
-		strconv.Itoa(triggeredRollCount),
-		nil,
+		Name:      "TRIGGERED_ROLL_COUNT",
+		Value:     strconv.Itoa(triggeredRollCount),
+		ValueFrom: nil,
 	}
 	Update(containers, &newTriggeredRollCountEnvVar)
 

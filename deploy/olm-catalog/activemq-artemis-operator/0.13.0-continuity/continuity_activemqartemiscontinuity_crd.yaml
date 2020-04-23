@@ -1,18 +1,25 @@
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  creationTimestamp: null
+  creationTimestamp: '2020-04-23T01:01:38Z'
   name: activemqartemiscontinuities.continuity.amq.io
 spec:
   group: continuity.amq.io
+  subresources:
+    status: {}
   names:
     kind: ActiveMQArtemisContinuity
     listKind: ActiveMQArtemisContinuityList
     plural: activemqartemiscontinuities
     singular: activemqartemiscontinuity
   scope: Namespaced
+  conversion:
+    strategy: None
+  preserveUnknownFields: true
+  version: v2alpha2
   validation:
     openAPIV3Schema:
+      type: object
       properties:
         apiVersion:
           type: string
@@ -21,6 +28,17 @@ spec:
         metadata:
           type: object
         spec:
+          type: object
+          required:
+            - siteId
+            - activeOnStart
+            - servingAcceptors
+            - remoteConnectorRefs
+            - reorgManagement
+            - localContinuityUser
+            - localContinuityPass
+            - remoteContinuityUser
+            - remoteContinuityPass
           properties:
             siteId:
               description: Name the continuity site. Must be unique in the set of
@@ -31,6 +49,17 @@ spec:
                 first started. If another active site is connected to, this site will
                 defer to the other. You can also start both sites inactive and explictly
                 activate the desired start. Required for continuity.
+              type: boolean
+            servingAcceptors:
+              description: List of acceptors exposed for external consumption that will be enabled/disabled during site swapover. Comma or semicolon separated.
+              type: string
+            remoteConnectorRefs:
+              description: List of connectors that point at the peer site.
+              type: string
+            reorgManagement:
+              description: Whether or not to reorganized all the address, queue, divert,
+                and bridge primitives under the continuity hierarchy in JMX/Jolokia.
+                The default is true.
               type: boolean
             localContinuityPass:
               description: Password to connect to the local broker for continuity
@@ -47,7 +76,7 @@ spec:
             remoteContinuityUser:
               description: Username to connect to the remote broker for continuity
                 connections. Required for continuity.
-              type: string
+              type: string    
             activationTimeout:
               description: Time in milliseconds to activate a site and start serving
                 clients, overriding the wait for the peer site to be exhausted, and
@@ -75,15 +104,8 @@ spec:
               description: Time in milliseconds between polls for status checks. The default is 100 ms.
               format: int64
               type: integer
-            reorgManagement:
-              description: Whether or not to reorganized all the address, queue, divert,
-                and bridge primitives under the continuity hierarchy in JMX/Jolokia.
-                The default is true.
-              type: boolean
-          type: object
         status:
           type: object
-  version: v2alpha2
   versions:
   - name: v2alpha2
     served: true

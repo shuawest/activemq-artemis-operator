@@ -46,7 +46,7 @@ RUN useradd ${BROKER_NAME}-operator
 RUN mkdir -p /home/${BROKER_NAME}-operator/bin && chown -R `id -u`:0 /home/${BROKER_NAME}-operator/bin && chmod -R 755 /home/${BROKER_NAME}-operator/bin
 
 USER ${USER_UID}
-ENTRYPOINT ["/home/${BROKER_NAME}-operator/bin/entrypoint"]
+ENTRYPOINT ["/home/activemq-artemis-operator/bin/entrypoint"]
 
 LABEL \
       com.redhat.component="activemq-artemis-operator-container"  \
@@ -57,7 +57,7 @@ LABEL \
       io.openshift.expose-services=""  \
       io.openshift.s2i.scripts-url="image:///usr/local/s2i"  \
       io.openshift.tags="messaging,amq,integration,operator,golang,continuity"  \
-      maintainer="Roddie Kieley <rkieley@redhat.com>, Josh West <jowest@redhat.com>"  \
+      maintainer="Roddie Kieley <rkieley@redhat.com>, Josh West <jowest@redhat.com> (continuity ext)"  \
       name="jowest/activemq-artemis-operator" \
       summary="ActiveMQ Artemis Broker Operator with Continuity"  \
       version="0.13.0-continuity"

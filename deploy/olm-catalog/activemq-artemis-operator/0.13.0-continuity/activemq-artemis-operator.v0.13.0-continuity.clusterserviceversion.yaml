@@ -88,7 +88,7 @@ spec:
   maintainers:
     - name: Red Hat
       email: rkieley@redhat.com
-    - name: Josh West - Continuity Community 2
+    - name: Josh West - Continuity Community
       email: jowest@redhat.com
   provider:
     name: Red Hat

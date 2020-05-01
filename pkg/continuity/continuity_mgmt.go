@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/rh-messaging/activemq-artemis-operator/pkg/continuity/jolokia"
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/management/jolokia"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
@@ -133,7 +133,7 @@ func (artemis *ArtemisContinuity) Boot() error {
 func evaluateExecResult(body string, err error) error {
 	if err != nil {
 		return ContinuityError{
-			Operation: "calling jolokia read service",
+			Operation: "calling jolokia exec service",
 			Detail:    err.Error(),
 			Cause:     err,
 		}

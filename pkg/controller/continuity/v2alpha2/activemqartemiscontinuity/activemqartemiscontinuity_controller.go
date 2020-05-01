@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	continuityv2alpha2 "github.com/rh-messaging/activemq-artemis-operator/pkg/apis/continuity/v2alpha2"
-	mgmt "github.com/rh-messaging/activemq-artemis-operator/pkg/continuity"
-	"github.com/rh-messaging/activemq-artemis-operator/pkg/continuity/jolokia"
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/continuity"
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/management/jolokia"
 	ss "github.com/rh-messaging/activemq-artemis-operator/pkg/resources/statefulsets"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -182,12 +182,12 @@ func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, re
 	return err
 }
 
-func getPodBrokers(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) []*mgmt.ArtemisContinuity {
+func getPodBrokers(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) []*continuity.ArtemisContinuity {
 
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Getting Pod Brokers")
 
-	var artemisArray []*mgmt.ArtemisContinuity = nil
+	var artemisArray []*continuity.ArtemisContinuity = nil
 	var err error = nil
 
 	ss.NameBuilder.Name()
@@ -216,7 +216,7 @@ func getPodBrokers(instance *continuityv2alpha2.ActiveMQArtemisContinuity, reque
 		// For each of the replicas
 		var i int = 0
 		var replicas int = int(*statefulset.Spec.Replicas)
-		artemisArray = make([]*mgmt.ArtemisContinuity, 0, replicas)
+		artemisArray = make([]*continuity.ArtemisContinuity, 0, replicas)
 		for i = 0; i < replicas; i++ {
 			s := statefulset.Name + "-" + strconv.Itoa(i)
 			podNamespacedName.Name = s
@@ -229,7 +229,7 @@ func getPodBrokers(instance *continuityv2alpha2.ActiveMQArtemisContinuity, reque
 			} else {
 				reqLogger.Info("Pod found", "Namespace", request.Namespace, "Name", request.Name)
 				jolokiaClient := jolokia.NewJolokia(pod.Status.PodIP, "8161", "/console/jolokia", instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass)
-				artemis := mgmt.NewArtemisContinuity("amq-broker", jolokiaClient)
+				artemis := continuity.NewArtemisContinuity("amq-broker", jolokiaClient)
 				artemisArray = append(artemisArray, artemis)
 			}
 		}

@@ -3,13 +3,18 @@ package activemqartemiscontinuity
 import (
 	"context"
 	"strconv"
+	"time"
 
 	continuityv2alpha2 "github.com/rh-messaging/activemq-artemis-operator/pkg/apis/continuity/v2alpha2"
 	"github.com/rh-messaging/activemq-artemis-operator/pkg/continuity"
 	"github.com/rh-messaging/activemq-artemis-operator/pkg/management/jolokia"
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/resources"
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/resources/secrets"
 	ss "github.com/rh-messaging/activemq-artemis-operator/pkg/resources/statefulsets"
+	"github.com/rh-messaging/activemq-artemis-operator/pkg/utils/selectors"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -22,7 +27,6 @@ import (
 )
 
 var log = logf.Log.WithName("controller_activemqartemiscontinuity")
-var namespacedNameToContinuityName = make(map[types.NamespacedName]continuityv2alpha2.ActiveMQArtemisContinuity)
 
 // Add creates a new ActiveMQArtemisContinuity Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -88,72 +92,79 @@ func (r *ReconcileActiveMQArtemisContinuity) Reconcile(request reconcile.Request
 	instance := &continuityv2alpha2.ActiveMQArtemisContinuity{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
-
 		if errors.IsNotFound(err) {
-			reqLogger.Info("Reconciling ActiveMQArtemisContinuity - IsNotFound no requeue")
-
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
+			reqLogger.Info("IsNotFound no requeue")
 			return reconcile.Result{}, nil
-		}
 
-		reqLogger.Info("Reconciling ActiveMQArtemisContinuity - error do requeue")
+			// TODO: should continuity be shut down when CR is removed?
+		}
 
 		// Error reading the object - requeue the request.
+		reqLogger.Info("Requeuing due to continuity err: " + err.Error())
 		return reconcile.Result{}, err
 	} else {
-		reqLogger.Info("Reconciling ActiveMQArtemisContinuity - success")
+		// Found continuity CR - boot continuity
+		err = bootContinuity(instance, request, r.client)
+		if nil != err {
+			// Error calling continuity - requeue the request
+			reqLogger.Info("Error while booting continuity: " + err.Error())
+			return reconcile.Result{}, err
+		} else {
+			isBooted, err := retrieveBooted(instance, request, r.client)
+			if nil != err {
+				// Error calling verifying continuity status - requeue the request
+				reqLogger.Info("Error verifying continuity status: " + err.Error())
+				return reconcile.Result{}, err
+			}
 
-		err = createContinuity(instance, request, r.client)
-		if nil == err {
-			namespacedNameToContinuityName[request.NamespacedName] = *instance
-		}
-		// TODO: requeue the reconciler always
-		//       determine if jolokia fails to return error, or if first bootstrapped instance is just swallowed in a restart of the broker pod
-		//       check for bootstrap status
-		//       watch for changes to continuity CR, updated values, and reboot as necessary
-
-		if err != nil {
-			reqLogger.Info("Reconciling ActiveMQArtemisContinuity - err calling createContinuity " + err.Error())
+			if !isBooted {
+				reqLogger.Info("Contintuity not booted yet")
+				return reconcile.Result{Requeue: true, RequeueAfter: 5 * time.Second}, nil
+			} else {
+				reqLogger.Info("Contintuity is booted")
+				return reconcile.Result{}, nil
+			}
 		}
 	}
 
-	err = retrieveBooted(instance, request, r.client)
-
-	//return reconcile.Result{}, nil
-	return reconcile.Result{Requeue: true}, nil
+	return reconcile.Result{}, nil
 }
 
-func retrieveBooted(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) error {
+func retrieveBooted(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) (bool, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("ActiveMQArtemisContinuity checking bootstrap status")
 
+	isBooted := true
 	var err error = nil
-	artemisArray := getPodBrokers(instance, request, client)
 
+	artemisArray := getPodBrokers(instance, request, client)
 	if nil != artemisArray {
-		for _, a := range artemisArray {
+		for i, a := range artemisArray {
 			if nil == a {
-				reqLogger.Info("IsBooted ActiveMQArtemisContinuity artemisArray had a nil!")
+				isBooted = false
 				continue
 			}
 
-			isBooted, err := a.IsBooted()
-
+			bootedResult, err := a.IsBooted()
 			if nil != err {
-				reqLogger.Info("IsBooted ActiveMQArtemisContinuity error", instance.Spec.SiteId)
-				break
+				reqLogger.Info("IsBooted ActiveMQArtemisContinuity error", "Error", err)
+				isBooted = false
+				continue
 			}
 
-			reqLogger.Info("IsBooted ActiveMQArtemisContinuity", "isbooted.result", isBooted, "siteid", instance.Spec.SiteId)
+			if !bootedResult {
+				isBooted = false
+				continue
+			}
+
+			reqLogger.Info("ActiveMQArtemisContinuity on broker instance " + strconv.Itoa(i) + " is booted")
 		}
 	}
 
-	return err
+	return isBooted, err
 }
 
-func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) error {
+func bootContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) error {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Creating ActiveMQArtemisContinuity createContinuity")
 
@@ -161,21 +172,45 @@ func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, re
 	artemisArray := getPodBrokers(instance, request, client)
 
 	if nil != artemisArray {
-		for _, a := range artemisArray {
+		for i, a := range artemisArray {
 			if nil == a {
-				reqLogger.Info("Creating ActiveMQArtemisContinuity artemisArray had a nil!")
 				continue
 			}
-			errConfigure := a.Configure(instance.Spec.SiteId, instance.Spec.ActiveOnStart, instance.Spec.ServingAcceptors, "continuity-local", instance.Spec.RemoteConnectorRefs, instance.Spec.ReorgManagement)
-			errSecrets := a.SetSecrets(instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass, instance.Spec.RemoteContinuityUser, instance.Spec.RemoteContinuityPass)
-			errTune := a.Tune(instance.Spec.ActivationTimeout, instance.Spec.InflowStagingDelay, instance.Spec.BridgeInterval, instance.Spec.BridgeIntervalMultiplier, instance.Spec.PollDuration)
-			errBoot := a.Boot()
-			if nil != errConfigure || nil != errSecrets || nil != errTune || nil != errBoot {
-				reqLogger.Info("Creating ActiveMQArtemisContinuity error for " + instance.Spec.SiteId)
-				break
-			} else {
-				reqLogger.Info("Created ActiveMQArtemisContinuity for " + instance.Spec.SiteId)
+
+			isBooted, err := a.IsBooted()
+			if nil != err {
+				reqLogger.Info("Error checking if continuity (" + strconv.Itoa(i) + ") is already booted: " + err.Error())
+				continue
+			} else if isBooted {
+				reqLogger.Info("Continuity (" + strconv.Itoa(i) + ") is already booted")
+				continue
 			}
+
+			err = a.Configure(instance.Spec.SiteId, instance.Spec.ActiveOnStart, instance.Spec.ServingAcceptors, "continuity-local", instance.Spec.RemoteConnectorRefs, instance.Spec.ReorgManagement)
+			if nil != err {
+				reqLogger.Info("Error configuring continuity (" + strconv.Itoa(i) + "): " + err.Error())
+				continue
+			}
+
+			err = a.SetSecrets(instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass, instance.Spec.RemoteContinuityUser, instance.Spec.RemoteContinuityPass)
+			if nil != err {
+				reqLogger.Info("Error setting continuity (" + strconv.Itoa(i) + ") secrets: " + err.Error())
+				continue
+			}
+
+			err = a.Tune(instance.Spec.ActivationTimeout, instance.Spec.InflowStagingDelay, instance.Spec.BridgeInterval, instance.Spec.BridgeIntervalMultiplier, instance.Spec.PollDuration)
+			if nil != err {
+				reqLogger.Info("Error setting continuity (" + strconv.Itoa(i) + ") tuning: " + err.Error())
+				continue
+			}
+
+			err = a.Boot()
+			if nil != err {
+				reqLogger.Info("Error booting continuity (" + strconv.Itoa(i) + "): " + err.Error())
+				continue
+			}
+
+			reqLogger.Info("Booted continuity (" + strconv.Itoa(i) + ")")
 		}
 	}
 
@@ -183,7 +218,6 @@ func createContinuity(instance *continuityv2alpha2.ActiveMQArtemisContinuity, re
 }
 
 func getPodBrokers(instance *continuityv2alpha2.ActiveMQArtemisContinuity, request reconcile.Request, client client.Client) []*continuity.ArtemisContinuity {
-
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Getting Pod Brokers")
 
@@ -213,6 +247,8 @@ func getPodBrokers(instance *continuityv2alpha2.ActiveMQArtemisContinuity, reque
 			Namespace: request.Namespace,
 		}
 
+		user, pass, _ := retrieveBrokerCredentials(podNamespacedName.Namespace, client)
+
 		// For each of the replicas
 		var i int = 0
 		var replicas int = int(*statefulset.Spec.Replicas)
@@ -220,20 +256,56 @@ func getPodBrokers(instance *continuityv2alpha2.ActiveMQArtemisContinuity, reque
 		for i = 0; i < replicas; i++ {
 			s := statefulset.Name + "-" + strconv.Itoa(i)
 			podNamespacedName.Name = s
+
+			var artemis *continuity.ArtemisContinuity = nil
+
 			if err = client.Get(context.TODO(), podNamespacedName, pod); err != nil {
 				if errors.IsNotFound(err) {
-					reqLogger.Error(err, "Pod IsNotFound", "Namespace", request.Namespace, "Name", request.Name)
+					reqLogger.Error(err, "Pod IsNotFound")
 				} else {
-					reqLogger.Error(err, "Pod lookup error", "Namespace", request.Namespace, "Name", request.Name)
+					reqLogger.Error(err, "Pod lookup error")
 				}
 			} else {
-				reqLogger.Info("Pod found", "Namespace", request.Namespace, "Name", request.Name)
-				jolokiaClient := jolokia.NewJolokia(pod.Status.PodIP, "8161", "/console/jolokia", instance.Spec.LocalContinuityUser, instance.Spec.LocalContinuityPass)
-				artemis := continuity.NewArtemisContinuity("amq-broker", jolokiaClient)
-				artemisArray = append(artemisArray, artemis)
+				if "" == pod.Status.PodIP {
+					reqLogger.Info("Pod IP not available yet")
+				} else {
+					reqLogger.Info("Pod found", "PodIP", pod.Status.PodIP)
+
+					jolokiaClient := jolokia.NewJolokia(pod.Status.PodIP, "8161", "/console/jolokia", user, pass)
+					artemis = continuity.NewArtemisContinuity("amq-broker", jolokiaClient)
+				}
 			}
+
+			artemisArray = append(artemisArray, artemis)
 		}
 	}
 
 	return artemisArray
+}
+
+func retrieveBrokerCredentials(namespace string, client client.Client) (string, string, error) {
+	secretName := secrets.CredentialsNameBuilder.Name()
+	stringData := map[string]string{}
+	secretNSName := types.NamespacedName{
+		Name:      secretName,
+		Namespace: namespace,
+	}
+	podSecret := &corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Secret",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Labels:    selectors.LabelBuilder.Labels(),
+			Name:      secretName,
+			Namespace: namespace,
+		},
+		StringData: stringData,
+	}
+
+	err := resources.Retrieve(secretNSName, client, podSecret)
+	user := string(podSecret.Data["AMQ_USER"])
+	pass := string(podSecret.Data["AMQ_PASSWORD"])
+
+	return user, pass, err
 }

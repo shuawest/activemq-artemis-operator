@@ -129,14 +129,14 @@ func (r *ReconcileActiveMQArtemisAddress) Reconcile(request reconcile.Request) (
 		if nil == err {
 			// Verify address is registered
 			queuePresent, err := verifyQueue(instance, request, r.client)
-			if queuePresent == true && err == nil {
+			if nil != err || queuePresent == false {
+				reqLogger.Info("ActiveMQArtemisAddress '" + instance.Spec.QueueName + "' has not been created on all brokers, requeuing reconcile")
+				return reconcile.Result{Requeue: true, RequeueAfter: 5 * time.Second}, err
+			} else {
 				// success - don't requeue the request
 				reqLogger.Info("ActiveMQArtemisAddress '" + instance.Spec.QueueName + "' created in all brokers")
 				namespacedNameToAddressName[request.NamespacedName] = *instance
 				return reconcile.Result{}, nil
-			} else {
-				reqLogger.Info("ActiveMQArtemisAddress '" + instance.Spec.QueueName + "' has not been created on all brokers, requeuing reconcile")
-				return reconcile.Result{Requeue: true, RequeueAfter: 2 * time.Second}, err
 			}
 		}
 	}
@@ -154,12 +154,11 @@ func createQueue(instance *brokerv2alpha1.ActiveMQArtemisAddress, request reconc
 	if nil != artemisArray {
 		for _, a := range artemisArray {
 			if nil == a {
-				reqLogger.Info("Creating ActiveMQArtemisAddress artemisArray had a nil!")
 				continue
 			}
 			err := a.CreateQueue(instance.Spec.AddressName, instance.Spec.QueueName, instance.Spec.RoutingType)
 			if nil != err {
-				reqLogger.Error(err, "Creating ActiveMQArtemisAddress error for "+instance.Spec.QueueName)
+				reqLogger.Info("Creating ActiveMQArtemisAddress error for " + instance.Spec.QueueName + ": " + err.Error())
 				break
 			} else {
 				reqLogger.Info("Created ActiveMQArtemisAddress for " + instance.Spec.QueueName)
@@ -235,7 +234,7 @@ func getPodBrokers(instance *brokerv2alpha1.ActiveMQArtemisAddress, request reco
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Getting Pod Brokers")
 
-	var artemisArray []*mgmt.Artemis = nil
+	var artemisArray []*mgmt.Artemis = make([]*mgmt.Artemis, 1)
 	var err error = nil
 
 	ss.NameBuilder.Name()
@@ -275,15 +274,15 @@ func getPodBrokers(instance *brokerv2alpha1.ActiveMQArtemisAddress, request reco
 
 			if err = client.Get(context.TODO(), podNamespacedName, pod); err != nil {
 				if errors.IsNotFound(err) {
-					reqLogger.Error(err, "Pod IsNotFound", "Namespace", request.Namespace, "Name", request.Name)
+					reqLogger.Error(err, "Pod IsNotFound")
 				} else {
-					reqLogger.Error(err, "Pod lookup error", "Namespace", request.Namespace, "Name", request.Name)
+					reqLogger.Error(err, "Pod lookup error")
 				}
 			} else {
 				if "" == pod.Status.PodIP {
-					reqLogger.Error(err, "Pod IP not available yet", "Namespace", request.Namespace, "Name", request.Name)
+					reqLogger.Info("Pod IP not available yet")
 				} else {
-					reqLogger.Info("Pod found", "Namespace", request.Namespace, "Name", request.Name, "PodIP", pod.Status.PodIP)
+					reqLogger.Info("Pod found", "PodIP", pod.Status.PodIP)
 
 					jolokiaClient := jolokia.NewJolokia(pod.Status.PodIP, "8161", "/console/jolokia", user, pass)
 					artemis = mgmt.NewArtemis("amq-broker", jolokiaClient)
